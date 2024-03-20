@@ -1,11 +1,11 @@
 package com.anahhas.webutils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -23,109 +23,139 @@ public class CollectionUtils {
         return !isEmpty(collection);
     }
 
-    public static <T, U extends Comparable<? super U>> Collection<T> distinctBy(
-        Collection<? extends T> collection, 
-        Function<? super T, ? extends U> identityMapper
+    public static <T extends Comparable<? super T>> Collection<T> distinct(Collection<? extends T> collection) {
+        return distinct(Function.identity(), collection);
+    }
+
+    public static <T, U extends Comparable<? super U>> Collection<T> distinct(
+        Function<? super T, ? extends U> identity, 
+        Collection<? extends T> collection
     ) {
 
-        Map<U, T> collected = collection.stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(identityMapper, 
-                Function.identity(), (u, v) -> u, TreeMap::new));
-
-        return collected.values();
+        return distinct(Comparator.comparing(identity), collection);
 
     }
 
-    public static <T, V, U extends Comparable<? super U>> Collection<V> distinctBy(
-        Collection<? extends T> collection, 
-        Function<? super T, ? extends U> identityMapper, 
-        Function<? super T, ? extends V> mapper
-    ) {
+    public static <T> Collection<T> distinct(Comparator<? super T> comparator, Collection<? extends T> collection) {
+        
+        List<T> distinctList = new ArrayList<>();
 
-        return distinctBy(collection, identityMapper).stream()
-            .map(mapper)
-            .collect(Collectors.toCollection(ArrayList::new));
+        for(T element : collection)
+            if(!containsAny(Comparator.nullsFirst(comparator), distinctList, element))
+                distinctList.add(element);
+
+        return distinctList;
 
     }
 
-    public static <T, U> Collection<T> distinctBy(
-        Collection<? extends T> collection, 
-        Function<? super T, ? extends U> keyExtractor,
-        Comparator<? super U> comparator
+    @SafeVarargs
+    public static <T extends Comparable<? super T>> Collection<T> outerJoin(
+        Collection<? extends T>... collections
     ) {
-
-        Map<U, T> collected = collection.stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toMap(keyExtractor, 
-                Function.identity(), (u, v) -> u, () -> new TreeMap<>(comparator)));
-
-        return collected.values();
+        
+        return outerJoin(Function.identity(), collections);
 
     }
 
     @SafeVarargs
     public static <T, U extends Comparable<? super U>> Collection<T> outerJoin(
-        Function<? super T, ? extends U> identityMapper, 
+        Function<? super T, ? extends U> identity, 
         Collection<? extends T>... collections
     ) {
         
-        Map<U, List<T>> groupMap = Stream.of(collections)
-            .flatMap(Collection::stream)
-            .collect(Collectors.groupingBy(identityMapper));
+        Collection<T> concat = concat(collections);
+        List<T> unique = new ArrayList<>(concat.size());
+        Predicate<T> isUnique = (element) -> !containsAny(identity, unique, element) && 
+            count(identity, element, concat) == 1;
 
-        groupMap.entrySet()
-            .removeIf(entry -> entry.getValue() == null || entry.getValue().size() != 1);
+        for(T element : concat)
+            if(isUnique.test(element))
+                unique.add(element);
 
-        return groupMap.values().stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toCollection(ArrayList::new));
+        return unique;
+
+    }
+
+    @SafeVarargs
+    public static <T extends Comparable<? super T>> Collection<T> innerJoin(
+        Collection<? extends T>... collections
+    ) { 
+
+        return innerJoin(Function.identity(), collections);
 
     }
 
     @SafeVarargs
     public static <T, U extends Comparable<? super U>> Collection<T> innerJoin(
-        Function<? super T, ? extends U> identityMapper, 
+        Function<? super T, ? extends U> identity, 
         Collection<? extends T>... collections
     ) {
         
-        Map<U, List<T>> groupMap = Stream.of(collections)
-            .flatMap(Collection::stream)
-            .collect(Collectors.groupingBy(identityMapper));
+        Collection<T> concat = concat(collections);
+        List<T> common = new ArrayList<>(concat.size());
+        Predicate<T> isCommon = (element) -> !containsAny(identity, common, element) && 
+            count(identity, element, concat) > 1;
 
-        groupMap.entrySet()
-            .removeIf(entry -> entry.getValue() == null || entry.getValue().size() <= 1);
+        for(T element : concat)
+            if(isCommon.test(element))
+                common.add(element);
 
-        return groupMap.values().stream()
-            .map(collection -> List.copyOf(collection).subList(0, 1))
+        return common;
+
+    }
+
+    @SafeVarargs
+    public static <T, U extends Comparable<? super U>> Map<U, List<T>> groupByIdentity(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T>... collections
+    ) {
+
+        return Stream.of(collections)
             .flatMap(Collection::stream)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.groupingBy(identity, 
+                () -> new TreeMap<>(Comparator.nullsFirst(Comparator.naturalOrder())), 
+                Collectors.toCollection(ArrayList::new)));
+
+    }
+
+    public static <T extends Comparable<? super T>> T minOf(Collection<? extends T> collection) {
+        return minOf(Comparator.naturalOrder(), collection);
+    }
+
+    public static <T, U extends Comparable<? super U>> T minOf(Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection) {
+
+        return minOf(Comparator.comparing(identity), collection);
+
+    }
+
+    public static <T> T minOf(Comparator<? super T> comparator, Collection<? extends T> collection) {
+
+        return collection.stream()
+            .collect(Collectors.minBy(Comparator.nullsFirst(comparator)))
+            .orElse(null);
 
     }
 
     public static <T extends Comparable<? super T>> T maxOf(Collection<? extends T> collection) {
-        return maxOf(collection, Comparator.naturalOrder());
+        return maxOf(Comparator.naturalOrder(), collection);
     }
 
-    public static <T extends Comparable<? super T>> T minOf(Collection<? extends T> collection) {
-        return minOf(collection, Comparator.naturalOrder());
+    public static <T, U extends Comparable<? super U>> T maxOf(Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection) {
+
+        return maxOf(Comparator.comparing(identity), collection);
+
     }
 
-    public static <T> T maxOf(Collection<? extends T> collection, Comparator<? super T> comparator) {
+    public static <T> T maxOf(Comparator<? super T> comparator, Collection<? extends T> collection) {
 
         return collection.stream()
-            .collect(Collectors.maxBy(comparator))
+            .collect(Collectors.maxBy(Comparator.nullsFirst(comparator)))
             .orElse(null);
 
     }
-
-    public static <T> T minOf(Collection<? extends T> collection, Comparator<? super T> comparator) {
-
-        return collection.stream()
-            .collect(Collectors.minBy(comparator))
-            .orElse(null);
-
-    }
+    
 
     public static <T> Collection<T> filter(Collection<? extends T> collection, Predicate<? super T> predicate) {
 
@@ -156,6 +186,17 @@ public class CollectionUtils {
         return count(Comparator.naturalOrder(), object, collection);
     }
 
+    public static <T, U extends Comparable<? super U>> long count(Function<? super T, ? extends U> identity, 
+        T object, Collection<? extends T> collection) {
+
+        return collection.stream()
+            .filter((final var element) -> Comparator.comparing(identity)
+                .compare(element, object) == 0
+            )
+            .count();
+            
+    }
+
     public static <T> long count(Comparator<? super T> comparator, T object, Collection<? extends T> collection) {
 
         return collection.stream()
@@ -171,6 +212,15 @@ public class CollectionUtils {
 
     }
 
+    @SafeVarargs
+    public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
+        T... elements) {
+
+        return containsAny(collection, Arrays.asList(elements));
+
+    }
+
+
     public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
         Collection<? extends T> container) {
 
@@ -181,18 +231,32 @@ public class CollectionUtils {
     }
 
     @SafeVarargs
-    public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
-        T... elements) {
-
-        return containsAny(collection, List.of(elements));
-
-    }
-
-    @SafeVarargs
     public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
         T... elements) {
 
-        return containsAny(comparator, collection, List.of(elements));
+        return containsAny(comparator, collection, Arrays.asList(elements));
+
+    }
+
+    public static <T, U extends Comparable<? super U>> boolean containsAny(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection, 
+        Collection<? extends T> container
+    ) {
+
+        return containsAny(Comparator.comparing(identity), collection, container);
+
+    }
+
+
+    @SafeVarargs
+    public static <T, U extends Comparable<? super U>> boolean containsAny(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection, 
+        T... elements
+    ) {
+
+        return containsAny(identity, collection, Arrays.asList(elements));
 
     }
 
@@ -200,6 +264,14 @@ public class CollectionUtils {
         Collection<? extends T> container) {
 
         return containsAll(Comparator.naturalOrder(), collection, container);
+
+    }
+
+    @SafeVarargs
+    public static <T extends Comparable<? super T>> boolean containsAll(Collection<? extends T> collection, 
+        T... elements) {
+
+        return containsAll(collection, Arrays.asList(elements));
 
     }
 
@@ -213,17 +285,31 @@ public class CollectionUtils {
     }
 
     @SafeVarargs
-    public static <T extends Comparable<? super T>> boolean containsAll(Collection<? extends T> collection, T... elements) {
+    public static <T> boolean containsAll(Comparator<? super T> comparator, 
+        Collection<? extends T> collection, T... elements) {
 
-        return containsAll(collection, List.of(elements));
+        return containsAll(comparator, collection, Arrays.asList(elements));
+
+    }
+
+    public static <T, U extends Comparable<? super U>> boolean containsAll(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection, 
+        Collection<? extends T> container
+    ) {
+
+        return containsAll(Comparator.comparing(identity), collection, container);
 
     }
 
     @SafeVarargs
-    public static <T> boolean containsAll(Comparator<? super T> comparator, 
-        Collection<? extends T> collection, T... elements) {
+    public static <T, U extends Comparable<? super U>> boolean containsAll(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection, 
+        T... elements
+    ) {
 
-        return containsAll(comparator, collection, List.of(elements));
+        return containsAll(Comparator.comparing(identity), collection, Arrays.asList(elements));
 
     }
 
@@ -239,6 +325,15 @@ public class CollectionUtils {
 
         return collection;
 
+    }
+
+    @SafeVarargs
+    public static <T> Collection<T> concat(Collection<? extends T>... collections) {
+
+        return Stream.of(collections)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toCollection(ArrayList::new));
+            
     }
 
     public static <T, U> Collection<U> mapElements(Collection<? extends T> collection, Function<? super T, ? extends U> mapper) {

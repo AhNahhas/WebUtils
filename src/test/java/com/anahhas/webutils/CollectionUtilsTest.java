@@ -25,8 +25,7 @@ public class CollectionUtilsTest {
         List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
         List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine");
 
-        Collection<String> result = CollectionUtils.innerJoin(Function.identity(), 
-            listOne, listTwo, listThree);
+        Collection<String> result = CollectionUtils.innerJoin(Function.identity(), listOne, listTwo, listThree);
 
         assertEquals(1, result.size());
         assertTrue(result.contains("Three"));
@@ -85,7 +84,7 @@ public class CollectionUtilsTest {
         List<String> duplicateList = TestHelpers.getListOfString("ONE", "TWO", "ONE", 
             "THREE", "FOUR", "ONE");
 
-        Collection<String> result = CollectionUtils.distinctBy(duplicateList, Function.identity());
+        Collection<String> result = CollectionUtils.distinct(duplicateList);
         
         assertEquals(4, result.size());
         assertTrue(result.contains("ONE"));
@@ -99,8 +98,8 @@ public class CollectionUtilsTest {
     public void shouldReturnDistinctStringsByComparator() {
 
         List<String> duplicateList = TestHelpers.getListOfString();
-        Collection<String> result = CollectionUtils.distinctBy(duplicateList, Function.identity(), 
-            (a, b) -> a.toUpperCase().compareTo(b.toUpperCase()));
+        Collection<String> result = CollectionUtils.distinct(
+                (a, b) -> a.toUpperCase().compareTo(b.toUpperCase()), duplicateList);
 
         assertEquals(2, result.size());
         assertTrue(result.contains("ABC"));

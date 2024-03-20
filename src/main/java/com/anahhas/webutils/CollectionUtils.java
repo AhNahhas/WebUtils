@@ -104,19 +104,11 @@ public class CollectionUtils {
     }
 
     public static <T extends Comparable<? super T>> T maxOf(Collection<? extends T> collection) {
-
-        return collection.stream()
-            .collect(Collectors.maxBy(Comparator.naturalOrder()))
-            .orElse(null);
-
+        return maxOf(collection, Comparator.naturalOrder());
     }
 
     public static <T extends Comparable<? super T>> T minOf(Collection<? extends T> collection) {
-
-        return collection.stream()
-            .collect(Collectors.minBy(Comparator.naturalOrder()))
-            .orElse(null);
-
+        return minOf(collection, Comparator.naturalOrder());
     }
 
     public static <T> T maxOf(Collection<? extends T> collection, Comparator<? super T> comparator) {
@@ -160,15 +152,11 @@ public class CollectionUtils {
 
     }
 
-    public static long count(Object object, Collection<?> collection) {
-
-        return collection.stream()
-            .filter((final var element) -> Objects.equals(element, object))
-            .count();
-
+    public static <T extends Comparable<? super T>> long count(T object, Collection<? extends T> collection) {
+        return count(Comparator.naturalOrder(), object, collection);
     }
 
-    public static <T> long count(T object, Collection<? extends T> collection, Comparator<? super T> comparator) {
+    public static <T> long count(Comparator<? super T> comparator, T object, Collection<? extends T> collection) {
 
         return collection.stream()
             .filter((final var element) -> comparator.compare(element, object) == 0)
@@ -179,9 +167,7 @@ public class CollectionUtils {
     public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
         Collection<? extends T> container) {
 
-        return collection.stream()
-            .anyMatch((final var element) -> container.stream()
-                .anyMatch(object -> element.compareTo(object) == 0));
+        return containsAny(Comparator.naturalOrder(), collection, container);
 
     }
 
@@ -210,12 +196,10 @@ public class CollectionUtils {
 
     }
 
-    public static <T extends Comparable<? super T>> boolean containsAll(
-        Collection<? extends T> collection, Collection<? extends T> container) {
+    public static <T extends Comparable<? super T>> boolean containsAll(Collection<? extends T> collection, 
+        Collection<? extends T> container) {
 
-        return container.stream()
-            .filter((final var element) -> containsAny(collection, element))
-            .count() == container.size();
+        return containsAll(Comparator.naturalOrder(), collection, container);
 
     }
 

@@ -6,9 +6,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.Test;
@@ -362,6 +366,55 @@ public class CollectionUtilsTest {
         assertTrue(result.contains("ABC123"));
         assertTrue(result.contains("def456"));
         assertTrue(result.contains("GHI789"));
+
+    }
+
+    @Test
+    public void shouldGroupByIdentity() {
+
+        List<StringBuilder> sbList = List.of(new StringBuilder("ABC"), new StringBuilder("AEF"),
+            new StringBuilder("DEF"), new StringBuilder("123"));
+
+        Map<Character, List<StringBuilder>> result = CollectionUtils.groupByIdentity(
+            getFirstLetterMapper(), sbList);
+
+        assertEquals(3, result.size());
+
+        Set<Character> keys = result.keySet();
+        assertTrue(keys.contains('A'));
+        assertTrue(keys.contains('D'));
+        assertTrue(keys.contains('1'));
+
+        List<StringBuilder> startsWithA = result.get('A');
+        assertEquals(2, startsWithA.size());
+        assertEquals("ABC", startsWithA.get(0).toString());
+        assertEquals("AEF", startsWithA.get(1).toString());
+
+    }
+
+    @Test
+    public void shouldConcatCollections() {
+
+        List<CharSequence> result = List.copyOf(CollectionUtils.concat(getListOfString(), Arrays.asList(
+            new StringBuilder("ABC"), new StringBuilder("AEF"), new StringBuilder("DEF"))));
+
+        assertEquals(6, result.size());
+        assertEquals("ABC", result.get(0).toString());
+        assertEquals("abc", result.get(1).toString());
+        assertEquals("123", result.get(2).toString());
+        assertEquals("ABC", result.get(3).toString());
+        assertEquals("AEF", result.get(4).toString());
+        assertEquals("DEF", result.get(5).toString());
+
+    }
+
+    @Test
+    public void shouldGroupByNullableIdentity() {
+
+        List<String> strList = TestHelpers.getListOfString("ABC", "def", "GHI", null);
+        Function<String, String> customMapper = (str) -> Optional.ofNullable(str).orElse("123");
+        Map<String, List<String>> result = CollectionUtils.groupByIdentity(customMapper, strList);
+        assertEquals(4, result.size());
 
     }
 

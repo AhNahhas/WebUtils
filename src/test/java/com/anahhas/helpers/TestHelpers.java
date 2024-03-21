@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class TestHelpers {
 
@@ -25,6 +26,19 @@ public class TestHelpers {
 
     public static Comparator<String> getCaseInsensitiveComparator() {
         return (a, b) -> a.toUpperCase().compareTo(b.toUpperCase());
+    }
+
+    public static Comparator<String> getFirstLetterComparator() {
+        return (a, b) -> Character.valueOf(a.charAt(0)).compareTo(
+            Character.valueOf(b.charAt(0)));
+    }
+
+    public static Predicate<String> getMaxLengthPredicate(final int length) {
+        return s -> s.length() <= length;
+    }
+
+    public static Predicate<String> getStartsWithPredicate(final String prefix) {
+        return str -> str.startsWith(prefix);
     }
     
 }

@@ -1,6 +1,7 @@
 package com.anahhas.webutils;
 
-import static com.anahhas.helpers.TestHelpers.getCaseInsensitiveComparator;
+import static com.anahhas.helpers.TestHelpers.*;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -33,10 +34,50 @@ public class CollectionUtilsTest {
     }
 
     @Test
-    public void shouldContainUncommonStrings() {
+    public void shouldContainCommonNullableStrings() {
         
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three", null, null);
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five", null);
+        List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine", null);
+
+        Collection<String> result = CollectionUtils.innerJoin(Function.identity(), listOne, listTwo, listThree);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains("Three"));
+        assertTrue(result.contains(null));
+
+    }
+
+    @Test
+    public void shouldContainCommonStringsByComporator() { 
+
         List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three");
         List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
+        List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine");
+
+        Collection<String> result = CollectionUtils.innerJoin(getFirstLetterComparator(), 
+            listOne, listTwo, listThree);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains("Two"));
+        assertTrue(result.contains("Four"));
+
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionForCommonStringSearchByComparator() { 
+
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three", null);
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
+        CollectionUtils.innerJoin(getFirstLetterComparator(), listOne, listTwo);
+
+    }
+
+    @Test
+    public void shouldContainUncommonStrings() {
+        
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three", null);
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five", null);
         List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine");
 
         Collection<String> result = CollectionUtils.outerJoin(Function.identity(), listOne, listTwo, listThree);
@@ -48,6 +89,58 @@ public class CollectionUtilsTest {
         assertTrue(result.contains("Five"));
         assertTrue(result.contains("Six"));
         assertTrue(result.contains("Nine"));
+
+    }
+
+    @Test
+    public void shouldContainUncommonNullableStrings() {
+        
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three", null);
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
+        List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine");
+
+        Collection<String> result = CollectionUtils.outerJoin(Function.identity(), listOne, listTwo, listThree);
+
+        assertEquals(7, result.size());
+        assertTrue(result.contains("One"));
+        assertTrue(result.contains("Two"));
+        assertTrue(result.contains("Four"));
+        assertTrue(result.contains("Five"));
+        assertTrue(result.contains("Six"));
+        assertTrue(result.contains("Nine"));
+        assertTrue(result.contains(null));
+
+    }
+
+    @Test
+    public void shouldContainUnCommonStringsByComporator() { 
+
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three");
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
+        List<String> listThree = TestHelpers.getListOfString( "Three", "Six", "Nine");
+
+        Comparator<String> comparator = (a, b) -> 
+            Character.valueOf(a.charAt(0)).compareTo(Character.valueOf(b.charAt(0)));
+
+        Collection<String> result = CollectionUtils.outerJoin(comparator, listOne, listTwo, listThree);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains("One"));
+        assertTrue(result.contains("Six"));
+        assertTrue(result.contains("Six"));
+
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionForUnCommonStringSearchByComparator() { 
+
+        List<String> listOne = TestHelpers.getListOfString("One", "Two", "Three", null);
+        List<String> listTwo = TestHelpers.getListOfString( "Three", "Four", "Five");
+
+        Comparator<String> comparator = (a, b) -> 
+            Character.valueOf(a.charAt(0)).compareTo(Character.valueOf(b.charAt(0)));
+
+        CollectionUtils.innerJoin(comparator, listOne, listTwo);
 
     }
 
@@ -64,7 +157,7 @@ public class CollectionUtilsTest {
     public void shouldNotMatchAllStrings() {
 
         List<String> list = TestHelpers.getListOfString("ABC", "DEF", "GHI", "LENGTHIER_STRING");
-        boolean result = CollectionUtils.allMatch(list, str -> str.length() <= 3);
+        boolean result = CollectionUtils.allMatch(list, getMaxLengthPredicate(3));
         assertFalse(result);
 
     }
@@ -73,7 +166,7 @@ public class CollectionUtilsTest {
     public void shouldCountMatchingStrings() {
 
         List<String> list = TestHelpers.getListOfString();
-        long result = CollectionUtils.countMatches(list, str -> str.startsWith("A"));
+        long result = CollectionUtils.countMatches(list, getStartsWithPredicate("A"));
         assertEquals(1, result);
 
     }
@@ -95,16 +188,40 @@ public class CollectionUtilsTest {
     }
 
     @Test
+    public void shouldReturnDistinctNullableStrings() {
+
+        List<String> duplicateList = TestHelpers.getListOfString("ONE", "TWO", "ONE", 
+            "THREE", "FOUR", "ONE", null, null);
+
+        Collection<String> result = CollectionUtils.distinct(duplicateList);
+        
+        assertEquals(5, result.size());
+        assertTrue(result.contains("ONE"));
+        assertTrue(result.contains("TWO"));
+        assertTrue(result.contains("THREE"));
+        assertTrue(result.contains("FOUR"));
+        assertTrue(result.contains(null));
+
+
+    }
+
+    @Test
     public void shouldReturnDistinctStringsByComparator() {
 
         List<String> duplicateList = TestHelpers.getListOfString();
-        Collection<String> result = CollectionUtils.distinct(
-                (a, b) -> a.toUpperCase().compareTo(b.toUpperCase()), duplicateList);
+        Collection<String> result = CollectionUtils.distinct(getCaseInsensitiveComparator(), duplicateList);
 
         assertEquals(2, result.size());
         assertTrue(result.contains("ABC"));
         assertTrue(result.contains("123"));
 
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void shouldThrowExceptionForDistinctSearchByComparator() {
+
+        List<String> duplicateList = TestHelpers.getListOfString("A", "B", null);
+        CollectionUtils.distinct(getCaseInsensitiveComparator(), duplicateList);
     }
 
     @Test
@@ -116,6 +233,20 @@ public class CollectionUtilsTest {
         assertEquals(3, result.size());
         assertTrue(result.contains("ABC"));
         assertTrue(result.contains("123"));
+
+    }
+
+    @Test
+    public void shouldMapNullableCollectionStrings() {
+
+        List<String> list = TestHelpers.getListOfString();
+        Collection<String> result = CollectionUtils.mapElements(list, 
+            s -> s.startsWith("A") ? null : s);
+        
+        assertEquals(3, result.size());
+        assertTrue(result.contains(null));
+        assertTrue(result.contains("123"));
+        assertTrue(result.contains("abc"));
 
     }
 
@@ -147,6 +278,24 @@ public class CollectionUtilsTest {
     }
 
     @Test
+    public void shouldNotContainAllStrings() {
+
+        List<String> list = TestHelpers.getListOfString("abc", "123");
+        boolean result = CollectionUtils.containsAll(Comparator.naturalOrder(), list, "124", "ABc");
+        assertFalse(result);
+
+    }
+
+    @Test
+    public void shouldNotContainAllNumbersInCollection() {
+
+        List<Integer> list = TestHelpers.getListOfInt();
+        boolean result = CollectionUtils.containsAll(list, List.of(1, 2, 3, 5));
+        assertFalse(result);
+
+    }
+
+    @Test
     public void shouldNotContainAllStringsByComparator() {
 
         List<String> list = TestHelpers.getListOfString("abc", "123");
@@ -169,6 +318,17 @@ public class CollectionUtilsTest {
 
         List<String> list = TestHelpers.getListOfString("abc", "123");
         boolean result = CollectionUtils.containsAny(getCaseInsensitiveComparator(), list, "1", "ABC");
+        assertTrue(result);
+
+    }
+
+    @Test
+    public void shouldContainAnyOfStringsByIdentity() {
+
+        List<String> list = TestHelpers.getListOfString("abc", "123");
+        boolean result = CollectionUtils.containsAny(
+            s -> Character.toUpperCase(s.charAt(0)), list, "XYZ", "ABC");
+            
         assertTrue(result);
 
     }

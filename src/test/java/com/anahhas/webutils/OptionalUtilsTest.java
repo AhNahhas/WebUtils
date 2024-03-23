@@ -37,7 +37,7 @@ public class OptionalUtilsTest {
     @Test
     public void shouldReturnDefaultForNullString() {
 
-        String result = OptionalUtils.ofBlankOrDefault(null, () -> "default");
+        String result = OptionalUtils.orDefault(OptionalUtils.ofBlank(null), () -> "default");
         assertEquals("default", result);
 
     }
@@ -45,7 +45,7 @@ public class OptionalUtilsTest {
     @Test
     public void shouldReturnDefaultForEmptyString() {
 
-        String result = OptionalUtils.ofBlankOrDefault("", () -> "default");
+        String result = OptionalUtils.orDefault(OptionalUtils.ofBlank(""), () -> "default");
         assertEquals("default", result);
 
     }
@@ -53,19 +53,19 @@ public class OptionalUtilsTest {
     @Test
     public void shouldReturnDefaultForWhiteSpaceString() {
 
-        String result = OptionalUtils.ofBlankOrDefault("  ", () -> "default");
+        String result = OptionalUtils.orDefault(OptionalUtils.ofBlank("  "), () -> "default");
         assertEquals("default", result);
 
     }
 
     @Test(expected = NoSuchElementException.class)
     public void shouldReturnThrowExceptionForNullString() {
-        OptionalUtils.ofBlankOrThrow(null);
+        OptionalUtils.orThrow(OptionalUtils.ofBlank(null));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldReturnThrowCustomExceptionForNullString() {
-        OptionalUtils.ofBlankOrThrow(null, () -> new IllegalArgumentException());
+        OptionalUtils.orThrow(OptionalUtils.ofBlank(null), () -> new IllegalArgumentException());
     }
 
     @Test
@@ -94,18 +94,19 @@ public class OptionalUtilsTest {
 
     @Test(expected = NoSuchElementException.class)
     public void shouldThrowExceptionForNullMapable() {
-        OptionalUtils.ofMappableOrThrow(null, Number::doubleValue);
+        OptionalUtils.orThrow(OptionalUtils.ofMappable(null, Number::doubleValue));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowCustomExceptionForNullMapableElement() {
-        OptionalUtils.ofMappableOrThrow(null, Number::doubleValue, () -> new IllegalArgumentException());
+        OptionalUtils.orThrow(OptionalUtils.ofMappable(null, Number::doubleValue), 
+            () -> new IllegalArgumentException());
     }
 
     @Test
     public void shouldReturnDefaultForNullMapable() {
 
-        String result = OptionalUtils.ofMappableOrDefault((String) null, String::toUpperCase, 
+        String result = OptionalUtils.orDefault(OptionalUtils.ofMappable((String) null, String::toUpperCase), 
             () -> "default");
 
         assertEquals("default", result);
@@ -131,23 +132,23 @@ public class OptionalUtilsTest {
     @Test(expected = NoSuchElementException.class)
     public void shouldThrowExceptionForEmptyOptionalMerger() {
 
-        OptionalUtils.mergeOrThrow(Optional.<Integer>empty(), Optional.of(2), (a, b) -> 5 * a - b);
+        OptionalUtils.orThrow(OptionalUtils.merge(Optional.<Integer>empty(), Optional.of(2), (a, b) -> 5 * a - b));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowCustomExceptionForEmptyOptionalMerger() {
 
-        OptionalUtils.mergeOrThrow(Optional.<Integer>empty(), Optional.of(2), (a, b) -> 5 * a - b,
-            () -> new IllegalArgumentException());
+        OptionalUtils.orThrow(OptionalUtils.merge(Optional.<Integer>empty(), Optional.of(2), 
+            (a, b) -> 5 * a - b), () -> new IllegalArgumentException());
 
     }
 
     @Test()
     public void shouldReturnDefaultForEmptyOptionalMerger() {
 
-        Integer result = OptionalUtils.mergeOrDefault(Optional.<Integer>empty(), Optional.of(2), 
-            (a, b) -> 5 * a - b, () -> 1);
+        Integer result = OptionalUtils.orDefault(OptionalUtils.merge(Optional.<Integer>empty(), Optional.of(2), 
+            (a, b) -> 5 * a - b), () -> 1);
         
         assertEquals(1, result.intValue());
 

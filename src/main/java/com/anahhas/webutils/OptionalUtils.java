@@ -3,6 +3,7 @@ package com.anahhas.webutils;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class OptionalUtils {
@@ -25,37 +26,32 @@ public class OptionalUtils {
             .orElse(null);
     }
 
-    public static <T extends CharSequence> T ofBlankOrDefault(T str, Supplier<? extends T> defSupplier) {
-        return orDefault(ofBlank(str), defSupplier);
-    }
-    
-    public static <T extends CharSequence> T ofBlankOrThrow(T str) {
-        return orThrow(ofBlank(str));
-    }
-
-    public static <T extends CharSequence> T ofBlankOrThrow(T str, Supplier<? extends RuntimeException> exSupplier) {
-        return orThrow(ofBlank(str), exSupplier);
-    }
-
     public static <T, U> U ofMappable(T element, Function<? super T, ? extends U> mapper) {
         return Optional.ofNullable(element).map(mapper).orElse(null);
     }
 
-    public static <T, U> U ofMappableOrThrow(T element, Function<? super T, ? extends U> mapper) {
-        return orThrow(ofMappable(element, mapper));
+    public static <T> T ofTruthy(T element, boolean condition) {
+        return ofTruthy(element, t -> condition);
     }
 
-    public static <T, U> U ofMappableOrThrow(T element, Function<? super T, ? extends U> mapper, 
-        Supplier<? extends RuntimeException> exSupplier) {
-        
-        return orThrow(ofMappable(element, mapper), exSupplier);
+    public static <T> T ofTruthy(T element, Predicate<? super T> predicate) {
 
+        return Optional.ofNullable(element)
+            .filter(predicate)
+            .orElse(null);
+            
     }
 
-    public static <T, U> U ofMappableOrDefault(T element, Function<? super T, ? extends U> mapper, 
-        Supplier<? extends U> defSupplier) {
+    public static <T, U> T ofSupplied(Supplier<? extends T> elementSupplier, boolean canSupply) {
+        return ofSupplied(elementSupplier, t -> canSupply);
+    }
 
-        return orDefault(ofMappable(element, mapper), defSupplier);
+    public static <T, U> T ofSupplied(Supplier<? extends T> elementSupplier, Predicate<? super T> predicate) {
+
+        return Optional.ofNullable(elementSupplier)
+            .map(Supplier::get)
+            .filter(predicate)
+            .orElse(null);
 
     }
 
@@ -68,25 +64,5 @@ public class OptionalUtils {
 
     }
 
-    public static <T, U, R> R mergeOrThrow(Optional<? extends T> left, Optional<? extends U> right, 
-        BiFunction<? super T, ? super U, ? extends R> combiner) {
-
-        return orThrow(merge(left, right, combiner));
-
-    }
-
-    public static <T, U, R> R mergeOrThrow(Optional<? extends T> left, Optional<? extends U> right, 
-        BiFunction<? super T, ? super U, ? extends R> combiner, Supplier<? extends RuntimeException> exSupplier) {
-
-        return  orThrow(merge(left, right, combiner), exSupplier);
-
-    }
-
-    public static <T, U, R> R mergeOrDefault(Optional<? extends T> left, Optional<? extends U> right, 
-        BiFunction<? super T, ? super U, ? extends R> combiner, Supplier<? extends R> defSupplier) {
-
-        return orDefault(merge(left, right, combiner), defSupplier);
-
-    }
     
 }

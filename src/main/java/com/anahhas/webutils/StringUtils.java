@@ -196,8 +196,8 @@ public class StringUtils {
 
         return Arrays.asList(elements).stream()
             .filter(filter)
-            .collect(Collectors.joining(
-                OptionalUtils.ofBlankOrDefault(delimiter, () -> EMPTY_STRING)));
+            .collect(Collectors.joining(OptionalUtils.orDefault(
+                OptionalUtils.ofBlank(delimiter), () -> EMPTY_STRING)));
 
     }
 

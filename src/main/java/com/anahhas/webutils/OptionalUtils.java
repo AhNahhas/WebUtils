@@ -12,6 +12,10 @@ public class OptionalUtils {
         return Optional.ofNullable(nullable).orElseGet(defSupplier);
     }
 
+    public static <T> T orDefault(T nullable, T def) {
+        return Optional.ofNullable(nullable).orElse(def);
+    }
+
     public static <T> T orThrow(T nullable) {
         return Optional.ofNullable(nullable).orElseThrow();
     }

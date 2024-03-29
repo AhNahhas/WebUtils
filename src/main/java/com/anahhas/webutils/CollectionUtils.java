@@ -389,6 +389,15 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Checks if all the elements in the collection match the predicate and returns true.
+     * If the collection is empty (or null), returns false.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param collection Collection to check
+     * @param predicate  Predicate to check
+     * @return           boolean indicating the check status
+     */
     public static <T> boolean allMatch(Collection<? extends T> collection, Predicate<? super T> predicate) {
 
         if(isEmpty(collection))
@@ -397,17 +406,38 @@ public class CollectionUtils {
         return collection.stream().allMatch(predicate);
     }
 
+    /**
+     * Counts the elements of the collection that match the predicate
+     * If the collection is empty (or null), returns 0.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param collection Collection to count matches from
+     * @param predicate  Predicate to check
+     * @return           long counting the elements passing the predicate
+     */
     public static <T> long countMatches(Collection<? extends T> collection, Predicate<? super T> predicate) {
 
-        return Stream.ofNullable(collection)
+        return Stream.of(collection)
             .flatMap(Collection::stream)
             .filter(predicate)
             .count();
 
     }
 
+    /**
+     * Merges a vararg number of of collections into a single one.
+     * If the parameter is null /or the collections are empty, a null reference/ or an empty
+     * collection is returned.
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param collections Collections to merge
+     * @return            Merged collections
+     */
     @SafeVarargs
     public static <T> Collection<T> merge(Collection<? extends T>... collections) {
+
+        if(collections == null)
+            return null;
 
         return Stream.of(collections)
             .filter(Objects::nonNull)
@@ -416,10 +446,36 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Counts the number of collection elements that are equal to object. Collection elements must 
+     * implement or (inherit from) the {@link java.lang.Comparable} interface. Equality is determined 
+     * using the {@link java.lang.Comparable#compareTo(Object) compareTo} method.
+     * This implementation is null friendly, the counting of a null object will return the number of
+     * null objects present in the collection, use {@link #count(java.util.Comparator, java.util.Collection)}.
+     * to override this behaviour using a custom {@link java.util.Comparator}.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param object     The object equals to search for
+     * @param collection Collection to count from
+     * @return           long couting elements that are equal to object.
+     */
     public static <T extends Comparable<? super T>> long count(T object, Collection<? extends T> collection) {
         return count(nullFirstComparator(Comparator.naturalOrder()), object, collection);
     }
 
+    /**
+     * Counts the number of collection elements that are equal to object. The equality is determined first, 
+     * by mapping the collection elements to {@link java.lang.Comparable} types, and then using 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. This implementation is null 
+     * friendly, the counting of a null object will return the number of null objects present in the collection.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param identity   The mapper function
+     * @param object     The object equals to search for 
+     * @param collection Collection to count from
+     * @return           long couting elements that are equal to object.
+     */
     public static <T, U extends Comparable<? super U>> long count(Function<? super T, ? extends U> identity, 
         T object, Collection<? extends T> collection) {
 
@@ -427,15 +483,38 @@ public class CollectionUtils {
             
     }
 
+    /**
+     * Counts the number of collection elements that are equal to object. The equality is determined 
+     * using a {@link java.util.Comparator} implementation.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param comparator The comparator implementation
+     * @param object     The object equals to search for 
+     * @param collection Collection to count from
+     * @return           long couting elements that are equal to object.
+     */
     public static <T> long count(Comparator<? super T> comparator, T object, Collection<? extends T> collection) {
 
         return Stream.ofNullable(collection)
+            .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter((final var element) -> comparator.compare(element, object) == 0)
             .count();
             
     }
 
+    /**
+     * Verifies if collection contains at least one element from container. Both collections elements must 
+     * implement (or inherit from) the {@link java.lang.Comparable} interface. Equality is determined 
+     * using the {@link java.lang.Comparable#compareTo(Object) compareTo} method. This implementation
+     * is null friendly, if both collection and container contain a null reference, then it is considered 
+     * a match & true is returned. If collection or container is empty (or null) then false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
         Collection<? extends T> container) {
 
@@ -443,6 +522,18 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains at least one element from varargs. Both collection and varargs elements 
+     * must implement (or inherit from) the {@link java.lang.Comparable} interface. Equality is determined using 
+     * the {@link java.lang.Comparable#compareTo(Object) compareTo} method. This implementation is null friendly, 
+     * if both collection and varargs parameter contain a null reference, then it is considered a match & true 
+     * is returned. If collection or varargs is empty (or null) then false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
         T... elements) {
@@ -451,7 +542,17 @@ public class CollectionUtils {
 
     }
 
-
+    /**
+     * Verifies if collection contains at least one element from container. The equality is determined 
+     * using a {@link java.util.Comparator} implementation. If collection or container is empty (or null) 
+     * then false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param comparator Comparator implementation
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
         final Collection<? extends T> container) {
 
@@ -464,6 +565,17 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains at least one element from varargs. The equality is determined using a 
+     * {@link java.util.Comparator} implementation. If collection or varargs is empty (or null) then false is 
+     * returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param comparator Comparator implementation
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
         T... elements) {
@@ -472,6 +584,20 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains at least one element from container. The equality is determined 
+     * first, by mapping the collection elements to {@link java.lang.Comparable} types, and then using 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. This implementation 
+     * is null friendly, if both collection and container contain a null reference, then it is considered 
+     * a match & true is returned. If collection or container is empty (or null) then false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param identity   The mapper function
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T, U extends Comparable<? super U>> boolean containsAny(
         Function<? super T, ? extends U> identity,
         Collection<? extends T> collection, 
@@ -482,7 +608,21 @@ public class CollectionUtils {
 
     }
 
-
+    /**
+     * Verifies if collection contains at least one element from varargs. The equality is determined 
+     * first, by mapping the collection elements to {@link java.lang.Comparable} types, and then using 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. This implementation 
+     * is null friendly, if both collection and varargs parameter contain a null reference, then it is 
+     * considered a match & true is returned. If collection is empty or varargs (or null) then false is 
+     * returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param identity   The mapper function
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T, U extends Comparable<? super U>> boolean containsAny(
         Function<? super T, ? extends U> identity,
@@ -494,6 +634,19 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all elements of container. Both collections elements must 
+     * implement (or inherit from) the {@link java.lang.Comparable} interface. Equality is determined 
+     * using the {@link java.lang.Comparable#compareTo(Object) compareTo} method. This implementation
+     * is null friendly, if container contains a null reference, collection must also contain at least
+     * one null reference for the verification. If collection or container is empty (or null) then false 
+     * is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T extends Comparable<? super T>> boolean containsAll(Collection<? extends T> collection, 
         Collection<? extends T> container) {
 
@@ -501,6 +654,18 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all varargs elements. Both collections elements must implement 
+     * (or inherit from) the {@link java.lang.Comparable} interface. Equality is determined using the 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} method. This implementation is null 
+     * friendly, if varargs contains a null reference, collection must also contain at least one null
+     * reference for the verification. If collection or varargs is empty (or null) then false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T extends Comparable<? super T>> boolean containsAll(Collection<? extends T> collection, 
         T... elements) {
@@ -509,6 +674,17 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all elements of container. The equality is determined using a 
+     * {@link java.util.Comparator} implementation. If collection or container is empty (or null) then 
+     * false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param comparator Comparator implementation
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T> boolean containsAll(final Comparator<? super T> comparator, 
         final Collection<? extends T> collection, final Collection<? extends T> container) {
 
@@ -521,6 +697,17 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all elements of varargs. The equality is determined using a 
+     * {@link java.util.Comparator} implementation. If collection or varargs is empty (or null) then 
+     * false is returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param comparator Comparator implementation
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T> boolean containsAll(Comparator<? super T> comparator, 
         Collection<? extends T> collection, T... elements) {
@@ -529,6 +716,21 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all elements of container. The equality is determined first, 
+     * by mapping the collection elements to {@link java.lang.Comparable} types, and then using 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. This implementation 
+     * is null friendly, if container contains a null reference, collection must also contain at least one 
+     * null reference for the verification. If collection or container is empty (or null) then false is 
+     * returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param identity   The mapper function
+     * @param collection Collection of elements to verify
+     * @param container  Collection of elements to search
+     * @return           boolean containing result of verification
+     */
     public static <T, U extends Comparable<? super U>> boolean containsAll(
         Function<? super T, ? extends U> identity,
         Collection<? extends T> collection, 
@@ -539,6 +741,21 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Verifies if collection contains all elements of varargs. The equality is determined first, 
+     * by mapping the collection elements to {@link java.lang.Comparable} types, and then using 
+     * {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. This implementation 
+     * is null friendly, if varargs contains a null reference, collection must also contain at least one 
+     * null reference for the verification. If collection or carargs is empty (or null) then false is 
+     * returned.
+     * 
+     * @param <T>        The type (or super type) of collections elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param identity   The mapper function
+     * @param collection Collection of elements to verify
+     * @param elements   Varargs of elements to search
+     * @return           boolean containing result of verification
+     */
     @SafeVarargs
     public static <T, U extends Comparable<? super U>> boolean containsAll(
         Function<? super T, ? extends U> identity,
@@ -550,6 +767,20 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Merges two collections into one collection, using a combiner to map nth element from both collection
+     * using a {@link java.util.function.BiFunction} implementation. If the collections have different sizes
+     * then the nth element from one collection is combined with a null reference using the combiner implementation.
+     * If both collections are null then a null reference is returned.
+     * 
+     * @param <T>       The type (or super type) of the first collection elements
+     * @param <U>       The type (or super type) of the second collection elements
+     * @param <V>       The type (or super type) of combiner returned type
+     * @param left      First collection to combine
+     * @param right     Second collection to combine
+     * @param combiner  The combiner implementation
+     * @return          Collection of merged elements
+     */
     public static <T, U, V> Collection<V> merge(Collection<? extends T> left, Collection<? extends U> right,
         BiFunction<? super T, ? super U, ? extends V> combiner) {
 
@@ -578,8 +809,18 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Concatenate varargs of collections into a single collection. If varargs is null then a null
+     * reference is returned.
+     * 
+     * @param <T>         The type (or super type) of the first collection elements
+     * @param collections Collections to concatenate
+     * @return            Collection of concatenated collections
+     */
     @SafeVarargs
     public static <T> Collection<T> concat(Collection<? extends T>... collections) {
+
+        if(collections == null) return null;
 
         return Stream.of(collections)
             .filter(Objects::nonNull)
@@ -588,13 +829,26 @@ public class CollectionUtils {
             
     }
 
+    /**
+     * Groups collection elements that are mapped to the same object returned by the identity mapper,
+     * into a list, then, maps the mapped object to the list of elements using a {@link java.util.Map}.
+     * The identity mapper return type must implement (or inherit from) the {@link java.lang.Comparable} 
+     * interface. If collections varargs is null or empty, then an emmpty map is returned.
+     * 
+     * @param <T>         The type (or super type) of the first collection elements
+     * @param <U>         The type mapped by the identity mapper
+     * @param identity    The mapper function
+     * @param collections Collections to group
+     * @return            Map of grouped elements value by mapped object key
+     * @throws NullPointerException if the mapper tries to map a null key to a null value
+     */
     @SafeVarargs
     public static <T, U extends Comparable<? super U>> Map<U, List<T>> groupByIdentity(
         Function<? super T, ? extends U> identity,
         Collection<? extends T>... collections
-    ) {
+    ) throws NullPointerException {
 
-        return Stream.of(collections)
+        return Stream.ofNullable(concat(collections))
             .flatMap(Collection::stream)
             .collect(Collectors.groupingBy(identity, 
                 () -> new TreeMap<>(Comparator.nullsFirst(Comparator.naturalOrder())), 
@@ -602,10 +856,30 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Transforms a comparator into a null friendly one. A null reference is considered the lowest
+     * value possible by the returned comparator.
+     * 
+     * @param <T>        The type (or super type) of the comparator
+     * @param comparator Comparator implementation
+     * @return           Comparator that is null friendly
+     */
     public static <T> Comparator<T> nullFirstComparator(Comparator<? super T> comparator) {
         return Comparator.nullsFirst(comparator);
     }
 
+    /**
+     * Returns a null friendly comparator of a mapper {@link java.util.function.Function}.
+     * A null reference is considered the lowest value possible by the returned comparator.
+     * The mapper returned type  must implement (or inherit from) the {@link java.lang.Comparable} 
+     * interface. The equality is determined using {@link java.lang.Comparable#compareTo(Object) compareTo} 
+     * method on mapped objects
+     * 
+     * @param <T>      The type (or super type) of the comparator
+     * @param <U>
+     * @param identity
+     * @return
+     */
     public static <T, U extends Comparable<? super U>> Comparator<T> nullFirstComparator(
         Function<? super T, ? extends U> identity) {
 
@@ -613,10 +887,30 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Transforms a comparator into a null friendly one. A null reference is considered the highest
+     * value possible by the returned comparator.
+     * 
+     * @param <T>        The type (or super type) of the comparator
+     * @param comparator Comparator implementation
+     * @return           Comparator that is null friendly
+     */
     public static <T> Comparator<T> nullLastComparator(Comparator<? super T> comparator) {
         return Comparator.nullsLast(comparator);
     }
 
+    /**
+     * Returns a null friendly comparator of a mapper {@link java.util.function.Function}.
+     * A null reference is considered the highest value possible by the returned comparator.
+     * The mapper returned type  must implement (or inherit from) the {@link java.lang.Comparable} 
+     * interface. The equality is determined using {@link java.lang.Comparable#compareTo(Object) compareTo} 
+     * method on mapped objects
+     * 
+     * @param <T>      The type (or super type) of the comparator
+     * @param <U>      The type mapped by the identity mapper
+     * @param identity The mapper
+     * @return
+     */
     public static <T, U extends Comparable<? super U>> Comparator<T> nullLastComparator(
         Function<? super T, ? extends U> identity) {
 
@@ -624,12 +918,30 @@ public class CollectionUtils {
 
     }
 
+    /**
+     * Returns a mutable shallow copy of the input collection. 
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param collection Collection to copy
+     * @return           Mutable copy of input collection
+     */
     public static <T> Collection<T> mutableCopyOf(Collection<? extends T> collection) {
 
         return mapElements(collection, Function.identity());
         
     }
 
+    /**
+     * Returns a shallow copy of mapped elements of input collection using a 
+     * {@link java.util.function.Function} implementation mapper. If the input
+     * collection is null then a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param collection Collection to map
+     * @param mapper     The mapper function
+     * @return           Collection of mapped elements
+    */
     public static <T, U> Collection<U> mapElements(Collection<? extends T> collection, 
         Function<? super T, ? extends U> mapper) {
 

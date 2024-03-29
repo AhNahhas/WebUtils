@@ -131,8 +131,7 @@ public class StringUtils {
 
             }
 
-            if(matchLen == searchedLen)
-                return true;
+            if(matchLen == searchedLen) return true;
                 
         }
 

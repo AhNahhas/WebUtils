@@ -59,6 +59,7 @@ public class StringUtilsTest {
         assertFalse(StringUtils.contains("OneTwoThree ", "  "));
         assertTrue(StringUtils.contains("OneTwoThree123", "ree123"));
         assertFalse(StringUtils.contains("OneTwoThree", "ree123 "));
+        assertFalse(StringUtils.contains(null, null));
     }
 
     @Test
@@ -84,6 +85,7 @@ public class StringUtilsTest {
         assertFalse(StringUtils.containsIgnoreCase("OneTwoThree", "onetwothree "));
         assertTrue(StringUtils.containsIgnoreCase("AbC123", "abc123"));
         assertTrue(StringUtils.containsIgnoreCase("abc123", "AbC123"));
+        assertFalse(StringUtils.contains(null, null));
 
     }
 

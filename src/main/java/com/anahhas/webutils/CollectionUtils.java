@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 
+ * Utility methods to handle {@link java.util.Collection}.
+ * @author Ahmed Amin Nahhas
  */
 public class CollectionUtils {
 

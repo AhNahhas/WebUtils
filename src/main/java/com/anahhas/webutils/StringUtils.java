@@ -6,6 +6,10 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * Utility methods to handle {@link java.lang.String} & {@link java.lang.CharSequence}.
+ * @author Ahmed Amin Nahhas
+ */
 public class StringUtils {
 
     private enum PadDirection { LEFT, RIGHT; }
@@ -15,8 +19,8 @@ public class StringUtils {
     private static final String EMPTY_STRING = "";
 
     /**
-     * Returns the length of a CharSequence. A null reference is considered to have
-     * a length equal to 0.
+     * Returns the length of a {@link java.lang.CharSequence}. A null reference is 
+     * considered to have a length equal to 0.
      * 
      * @param str CharSequence which length to calculate
      * @return    length of CharSequence  
@@ -26,8 +30,8 @@ public class StringUtils {
     }
 
     /**
-     * Transforms a String to lower case. If str is null then a null reference is
-     * returned.
+     * Transforms a {@link java.lang.String} to lower case. If str is null then a null 
+     * reference is returned.
      * 
      * @param str String to lower case
      * @return lower cased String
@@ -37,8 +41,8 @@ public class StringUtils {
     }
 
     /**
-     * Transforms a String to upper case. If str is null then a null reference is
-     * returned.
+     * Transforms a {@link java.lang.String} to upper case. If str is null then a null 
+     * reference is returned.
      * 
      * @param str String to upper case
      * @return    upper cased String
@@ -48,7 +52,7 @@ public class StringUtils {
     }
 
     /**
-     * Checks if a CharSequence is composed of whitespaces only.
+     * Checks if a {@link java.lang.CharSequence} is composed of whitespaces only.
      * A null reference and an empty CharSequence are also considered blank.
      * 
      * @param str CharSequence to check
@@ -62,7 +66,7 @@ public class StringUtils {
     }
 
     /**
-     * Checks if a CharSequence contains a non whitespace character.
+     * Checks if a {@link java.lang.CharSequence} contains a non whitespace character.
      * If it's a null reference or an empty CharSequence, false is returned.
      * 
      * @param str CharSequence to check
@@ -73,7 +77,7 @@ public class StringUtils {
     }
 
     /**
-     * Compares lexicographically two CharSequance references.
+     * Compares lexicographically two {@link java.lang.CharSequence} references.
      * If one CharSequence contains the other, then the length is compared
      * using the natural order. If both CharSequence references are null or
      * empty then true is returned.
@@ -97,9 +101,8 @@ public class StringUtils {
     }
 
     /**
-     * Compares lexicographically and case-insensitively two CharSequance references.
-     * If one CharSequence contains the other, then the length is compared
-     * using the natural order.
+     * Compares lexicographically and case-insensitively two {@link java.lang.CharSequence} references. 
+     * If one CharSequence contains the other, then the length is compared using the natural order.
      * <p>
      * If left is case-insensitively, lexicographically greater than right, a positive number is returned.
      * If right is case-insensitively, lexicographically greater than left, a negative number is returned.
@@ -137,7 +140,7 @@ public class StringUtils {
     }
 
     /**
-     * Verifies if two CharSequence references are lexicographically equal.
+     * Verifies if two {@link java.lang.CharSequence} references are lexicographically equal.
      * If both references are null or empty, then true is returned.
      * 
      * @param left  First CharSequence to compare
@@ -149,7 +152,7 @@ public class StringUtils {
     }
 
     /**
-     * Verifies if two CharSequence references are case-insensitively lexicographically equal.
+     * Verifies if two {@link java.lang.CharSequence} references are case-insensitively lexicographically equal.
      * If both references are null or empty, then true is returned.
      * 
      * @param left  First CharSequence to compare
@@ -161,7 +164,7 @@ public class StringUtils {
     }
 
     /**
-     * Verifies if a CharSequence contains a specific char.
+     * Verifies if a {@link java.lang.CharSequence} contains a specific char.
      * If str is null or empty, then false is returned.
      * 
      * @param left  CharSequence to verify
@@ -176,7 +179,7 @@ public class StringUtils {
     }
 
     /**
-     * Verifies if a CharSequence lexicographically contains a another CharSequence.
+     * Verifies if a {@link java.lang.CharSequence} lexicographically contains a another CharSequence.
      * If at least one CharSequece is null then false is returned.
      * 
      * @param left  CharSequence to verify
@@ -188,7 +191,7 @@ public class StringUtils {
     }
 
     /**
-     * Verifies if a CharSequence case-insensitively lexicographically contains a another CharSequence.
+     * Verifies if a {@link java.lang.CharSequence} case-insensitively lexicographically contains a another CharSequence.
      * If at least one CharSequece is null then false is returned.
      * 
      * @param left  CharSequence to verify
@@ -200,7 +203,7 @@ public class StringUtils {
     }
 
     /**
-     * Leftpads a string with a number of blank characters.
+     * Leftpads a {@link java.lang.String} with a number of blank characters.
      * If size is negative or equal to zero then str is returned.
      * 
      * @param str  String to leftpad
@@ -212,7 +215,7 @@ public class StringUtils {
     }
 
     /**
-     * Rightpads a string with a number of blank characters.
+     * Rightpads a {@link java.lang.String} with a number of blank characters.
      * If size is negative or equal to zero then str is returned.
      * 
      * @param str  String to rightpad
@@ -236,10 +239,10 @@ public class StringUtils {
     }
 
     /**
-     * Joins CharSequence references into a String, using the given delimiter 
-     * and filtering out null references. This method returns a null reference 
-     * if varargs parameter is null or not assigned.  If delimiter is null or 
-     * blank, and empty string ("") is used as a delimiter.
+     * Joins {@link java.lang.CharSequence} references into a String, using the given delimiter 
+     * and filtering out null references. This method returns a null reference if varargs 
+     * parameter is null or not assigned.  If delimiter is null or blank, and empty string ("") 
+     * is used as a delimiter.
      *      
      * @param delimiter Delimeter used between joined CharSequence references
      * @param elements  Varargs number of CharSequence references
@@ -250,9 +253,9 @@ public class StringUtils {
     }
 
     /**
-     * Concatenates CharSequence references into a String, filtering out 
-     * blank CharSequence references. This method returns a null reference 
-     * if varargs parameter is null or not assigned.
+     * Concatenates {@link java.lang.CharSequence} references into a String, filtering out blank 
+     * CharSequence references. This method returns a null reference if varargs parameter is null 
+     * or not assigned.
      *      
      * @param elements Varargs number of CharSequence references
      * @return         Concatenated String
@@ -262,10 +265,10 @@ public class StringUtils {
     }
 
     /**
-     * Joins CharSequence references into a String, using the given delimiter 
-     * and filtering out blank CharSequence references. This method returns a 
-     * null reference if varargs parameter is null or not assigned.  If delimiter 
-     * is null or blank, and empty string ("") is used as a delimiter.
+     * Joins {@link java.lang.CharSequence} references into a String, using the given delimiter 
+     * and filtering out blank CharSequence references. This method returns a null reference if 
+     * varargs parameter is null or not assigned.  If delimiter is null or blank, and empty string ("") 
+     * is used as a delimiter.
      *      
      * @param delimiter Delimeter used between joined CharSequence references
      * @param elements  Varargs number of CharSequence references
@@ -276,11 +279,10 @@ public class StringUtils {
     }
 
     /**
-     * Joins CharSequence references into a String, using the given delimiter and 
-     * filtering CharSequence references using a {@link java.util.function.Predicate}
-     * implementation. This method returns a null reference if varargs parameter is 
-     * null or not assigned. If delimiter is null or blank, and empty string ("") is
-     * used as a delimiter.
+     * Joins {@link java.lang.CharSequence} references into a String, using the given delimiter and 
+     * filtering CharSequence references using a {@link java.util.function.Predicate} implementation. 
+     * This method returns a null reference if varargs parameter is  null or not assigned. If delimiter 
+     * is null or blank, and empty string ("") is used as a delimiter.
      *      
      * @param delimiter Delimeter used between joined CharSequence references
      * @param elements  Varargs number of CharSequence references

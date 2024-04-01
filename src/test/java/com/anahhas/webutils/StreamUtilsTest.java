@@ -2,9 +2,15 @@ package com.anahhas.webutils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.Test;
 
 import com.anahhas.helpers.TestHelpers;
@@ -15,39 +21,81 @@ public class StreamUtilsTest {
     public void shouldReturnAnyElement() {
 
         List<Integer> collection = TestHelpers.getListOfInt();
-        assertNotNull(StreamUtils.anyElement(collection));
+        assertNotNull(StreamUtils.anyElement(collection.stream()));
 
     }
 
     @Test
-    public void shouldMapAndReturnAnyElement() {
+    public void shouldCollectionStreamElement() {
 
-        List<Integer> collection = TestHelpers.getListOfInt();
-        assertNotNull(StreamUtils.anyElement(collection, String::valueOf));
+        List<String> list = TestHelpers.getListOfString();
+        Set<String> set = StreamUtils.toCollection(list.stream(), HashSet::new);
+
+        assertEquals(3, set.size());
+        assertTrue(set.contains("ABC"));
+        assertTrue(set.contains("abc"));
+        assertTrue(set.contains("123"));
 
     }
 
     @Test
-    public void shouldMapAndReturnOnlyElement() {
+    public void shouldFilterDuplicateFromStream() {
 
-        List<Integer> collection = TestHelpers.getListOfInt(1);
-        String str = StreamUtils.anyElement(collection, String::valueOf);
-        assertEquals("1", str);
+        List<String> list = TestHelpers.getListOfString(null, "ABC", "ABC", "123", "EDF", "123", null);
+
+        List<String> filtered = list.stream()
+            .filter(StreamUtils.filterDuplicate())
+            .collect(Collectors.toList());
+
+        assertEquals(4, filtered.size());
+        assertTrue(filtered.contains("ABC"));
+        assertTrue(filtered.contains("EDF"));
+        assertTrue(filtered.contains("123"));
+        assertTrue(filtered.contains(null));
 
     }
 
-    @Test(expected = NoSuchElementException.class)
-    public void shouldThrowExceptionForEmptyCollection() {
+    @Test
+    public void shouldFilterDuplicateByComparatorFromStream() {
 
-        StreamUtils.anyElementOrThrow(List.of(), String::valueOf);
+        List<String> list = TestHelpers.getListOfString("ABC", "ACD", "123", "EDF", "145");
+
+        List<String> filtered = list.stream()
+            .filter(StreamUtils.filterDuplicate(TestHelpers.getFirstLetterComparator()))
+            .collect(Collectors.toCollection(ArrayList::new));
+
+        assertEquals(3, filtered.size());
+        assertTrue(filtered.contains("ABC"));
+        assertTrue(filtered.contains("EDF"));
+        assertTrue(filtered.contains("123"));
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowCustomExceptionForEmptyCollection() {
+    @Test
+    public void shouldSumIntStreamElements() {
 
-        StreamUtils.anyElementOrThrow(List.of(), String::valueOf, () -> new IllegalArgumentException());
+        List<Integer> list = TestHelpers.getListOfInt();
+        long sum = StreamUtils.sum(list.stream(), t -> t.intValue());
+        assertEquals(6, sum);
+        
+    }
 
+    @Test
+    public void shouldAverageIntStreamElements() {
+
+        List<Integer> list = TestHelpers.getListOfInt();
+        double sum = StreamUtils.average(list.stream(), t -> t.intValue());
+        assertEquals(2, sum, 0);
+        
+    }
+
+    @Test
+    public void shouldGetStreamFromIterable() {
+
+        Iterable<Integer> list = TestHelpers.getListOfInt();
+        Stream<Integer> stream = StreamUtils.fromIterable(list);
+        assertNotNull(stream);
+        
     }
 
 }

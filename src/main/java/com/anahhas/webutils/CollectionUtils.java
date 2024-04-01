@@ -858,6 +858,26 @@ public class CollectionUtils {
     }
 
     /**
+     * Returns a null-first comparator by natural order for a {@link java.lang.Comparable} type.
+     * 
+     * @param <T> The type of the comparator
+     * @return    null-first comparator by natural order
+     */
+    public static <T extends Comparable<? super T>> Comparator<T> nullFirstComparator() {
+        return nullFirstComparator(Comparator.naturalOrder());
+    }
+
+    /**
+     * Returns a null-last comparator by natural order for a {@link java.lang.Comparable} type.
+     * 
+     * @param <T> The type of the comparator
+     * @return    null-last comparator by natural order
+     */
+    public static <T extends Comparable<? super T>> Comparator<T> nullLastComparator() {
+        return nullLastComparator(Comparator.naturalOrder());
+    }
+
+    /**
      * Transforms a comparator into a null friendly one. A null reference is considered the lowest
      * value possible by the returned comparator.
      * 
@@ -952,6 +972,40 @@ public class CollectionUtils {
             .map(mapper)
             .collect(Collectors.toCollection(ArrayList::new));
             
+    }
+
+    /**
+     * Returns any element from the collection. If collection is null then
+     * a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param collection Collection to return element from
+     * @return           Any element from collection or null
+     */
+    public static <T> T anyElement(Collection<? extends T> collection) {
+
+        if(collection == null) return null;
+
+        return collection.stream()
+            .findAny()
+            .orElse(null);
+    }
+
+    /**
+     * Returns first element from the collection. If collection is null then
+     * a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param collection Collection to return element from
+     * @return           First element from collection or null
+     */
+    public static <T> T firstElement(Collection<? extends T> collection) {
+
+        if(collection == null) return null;
+
+        return collection.stream()
+            .findFirst()
+            .orElse(null);
     }
 
 }

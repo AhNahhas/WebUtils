@@ -1,4 +1,4 @@
-package com.anahhas.webutils;
+package io.github.ahnahhas.webutils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import com.anahhas.helpers.TestHelpers;
+import io.github.ahnahhas.webutils.helpers.TestHelpers;
 
 public class StreamUtilsTest {
 

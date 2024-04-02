@@ -1,8 +1,8 @@
-package com.anahhas.webutils;
+package io.github.ahnahhas.webutils;
 
-import static com.anahhas.webutils.OptionalUtils.ofMappable;
-import static com.anahhas.webutils.OptionalUtils.ofSupplied;
-import static com.anahhas.webutils.OptionalUtils.orDefault;
+import static io.github.ahnahhas.webutils.OptionalUtils.ofMappable;
+import static io.github.ahnahhas.webutils.OptionalUtils.ofSupplied;
+import static io.github.ahnahhas.webutils.OptionalUtils.orDefault;
 
 import java.util.ArrayList;
 import java.util.Arrays;

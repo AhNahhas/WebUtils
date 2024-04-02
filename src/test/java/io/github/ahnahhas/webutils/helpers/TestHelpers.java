@@ -1,4 +1,4 @@
-package com.anahhas.helpers;
+package io.github.ahnahhas.webutils.helpers;
 
 import java.util.ArrayList;
 import java.util.Arrays;

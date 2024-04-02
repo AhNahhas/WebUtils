@@ -1,3 +1,3 @@
-module com.anahhas.webutils {
-    exports com.anahhas.webutils;
+module io.github.ahnahhas.webutils {
+    exports io.github.ahnahhas.webutils;
 }

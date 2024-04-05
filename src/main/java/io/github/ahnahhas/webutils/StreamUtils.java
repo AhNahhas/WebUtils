@@ -1,4 +1,4 @@
-package com.anahhas.webutils;
+package io.github.ahnahhas.webutils;
 
 import java.util.ArrayList;
 import java.util.Collection;

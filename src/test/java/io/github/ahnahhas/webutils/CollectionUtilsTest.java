@@ -1,6 +1,6 @@
-package com.anahhas.webutils;
+package io.github.ahnahhas.webutils;
 
-import static com.anahhas.helpers.TestHelpers.*;
+import static io.github.ahnahhas.webutils.helpers.TestHelpers.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -17,7 +17,7 @@ import java.util.function.Function;
 
 import org.junit.Test;
 
-import com.anahhas.helpers.TestHelpers;
+import io.github.ahnahhas.webutils.helpers.TestHelpers;
 
 
 

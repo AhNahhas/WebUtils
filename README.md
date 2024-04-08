@@ -12,10 +12,10 @@ Maven dependency [Sonatype Central Repository](https://central.sonatype.com/arti
 
 ```java
 //with webutils 
-var iterator = OptionalUtils.ofMappable(firstCollection, Collection::iterator);
+var iterator = OptionalUtils.ofMappable(collection, Collection::iterator);
 
 //with plain java
-var iterator = firstCollection != null ? firstCollection.iterator() : null;
+var iterator = collection != null ? collection.iterator() : null;
 ```
 
 ``` java
@@ -29,6 +29,7 @@ var result = CollectionUtils.innerJoin(listOne, listTwo);
 
 ``` java
 //filter stream elements using a predicate
+Comparator<String> comparator = CollectionUtils.nullFirstComparator();
 var list = stream.filter(StreamUtils.filterDuplicate(comparator))
                  .collect(Collectors.toList());
 ```

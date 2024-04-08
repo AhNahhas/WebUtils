@@ -29,8 +29,9 @@ var result = CollectionUtils.innerJoin(listOne, listTwo);
 
 ``` java
 //filter stream elements using a predicate
-Comparator<String> comparator = CollectionUtils.nullFirstComparator();
-var list = stream.filter(StreamUtils.filterDuplicate(comparator))
+Comparator<String> comparator = (a, b) -> StringUtils.compareIgnoreCase(a, b);
+Comparator<String> nullFriendlyComparator = CollectionUtils.nullFirstComparator(comparator);
+var list = stream.filter(StreamUtils.filterDuplicate(nullFriendlyComparator))
                  .collect(Collectors.toList());
 ```
 

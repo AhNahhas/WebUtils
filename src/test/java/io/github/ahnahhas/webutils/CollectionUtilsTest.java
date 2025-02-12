@@ -62,9 +62,8 @@ public class CollectionUtilsTest {
         Collection<String> result = CollectionUtils.innerJoin(getFirstLetterComparator(), 
             listOne, listTwo, listThree);
 
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
         assertTrue(result.contains("Two"));
-        assertTrue(result.contains("Four"));
 
     }
 

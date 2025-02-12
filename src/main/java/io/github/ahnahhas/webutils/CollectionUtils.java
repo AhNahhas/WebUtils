@@ -2,7 +2,6 @@ package io.github.ahnahhas.webutils;
 
 import static io.github.ahnahhas.webutils.OptionalUtils.ofMappable;
 import static io.github.ahnahhas.webutils.OptionalUtils.ofSupplied;
-import static io.github.ahnahhas.webutils.OptionalUtils.orDefault;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,10 +11,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,6 +64,27 @@ public class CollectionUtils {
     }
 
     /**
+     * Returns a shallow copy of the input collection containing distinct elements. The collection's 
+     * elements must implement (or inherit from) the {@link java.lang.Comparable} interface. 
+     * The distinction is then determined using {@link java.lang.Comparable#compareTo(Object) compareTo} 
+     * method. An empty collection (or null) is returned if the input collection is empty (or null). 
+     * This implementation is null friendly, if the input collection contains null references, the output 
+     * collection, will contain a single null value. 
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param <S>        The specific type of the collection
+     * @param collection The collection to apply the distinction on
+     * @param supplier   The supplier of the specific collection
+     * @return           The specific collection of distinct elements
+     */
+    public static <T extends Comparable<? super T>, S extends Collection<T>> S distinct(
+        Collection<? extends T> collection,
+        Supplier<? extends S> supplier
+    ) {
+        return distinct(CollectionUtils.nullFirstComparator(Comparator.naturalOrder()), collection, supplier);
+    }
+
+    /**
      * Returns a shallow copy of the input collection containing distinct elements. The distinction is 
      * determined first, by mapping the collection elements to {@link java.lang.Comparable} types, and 
      * then using {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. 
@@ -85,6 +108,32 @@ public class CollectionUtils {
     }
 
     /**
+     * Returns a shallow copy of the input collection containing distinct elements. The distinction is 
+     * determined first, by mapping the collection elements to {@link java.lang.Comparable} types, and 
+     * then using {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. 
+     * An empty collection (or null) is returned if the input collection is empty (or null).
+     * This implementation is null friendly, if the input collection contains null references, the output 
+     * collection, will contain a single null value.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param <S>        The specific type of the collection
+     * @param identity   The mapper function
+     * @param collection The collection to apply the distinction on
+     * @param supplier   The supplier of the specific collection
+     * @return           The specific collection of distinct elements
+     */
+    public static <T, U extends Comparable<? super U>, S extends Collection<T>> S distinct(
+        Function<? super T, ? extends U> identity, 
+        Collection<? extends T> collection,
+        Supplier<? extends S> supplier
+    ) {
+
+        return distinct(nullFirstComparator(identity), collection, supplier);
+
+    }
+
+    /**
      * Returns a shallow copy of the input collection containing distinct elements.
      * The distinction is determined using a {@link java.util.Comparator} implementation.
      * An empty collection (or null) is returned if the input collection is empty (or null).
@@ -96,16 +145,38 @@ public class CollectionUtils {
      */
     public static <T> Collection<T> distinct(Comparator<? super T> comparator, Collection<? extends T> collection) {
         
-        if(isEmpty(collection))
-            return mutableCopyOf(collection);
+        return distinct(comparator, collection, ArrayList::new);
 
-        List<T> distinctList = new ArrayList<>(collection.size());
+    }
+
+    /**
+     * Returns a shallow copy of the input collection containing distinct elements.
+     * The distinction is determined using a {@link java.util.Comparator} implementation.
+     * An empty collection (or null) is returned if the input collection is empty (or null).
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param <S>        The specific type of the collection
+     * @param comparator The comparator implementation to determine distinction
+     * @param collection The collection to apply the distinction on
+     * @param supplier   The supplier of the specific collection
+     * @return           The specific collection of distinct elements
+     */
+    public static <T, S extends Collection<T>> S distinct(
+        Comparator<? super T> comparator, 
+        Collection<? extends T> collection,
+        Supplier<? extends S> supplier
+    ) {
+        
+        if(CollectionUtils.isEmpty(collection))
+            return mutableCopyOf(collection, supplier);
+
+        S suppliedCollection = supplier.get();
         
         for(T element : collection)
-            if(!containsAny(comparator, distinctList, element))
-                distinctList.add(element);
+            if(!CollectionUtils.containsAny(comparator, suppliedCollection, element))
+                suppliedCollection.add(element);
 
-        return distinctList;
+        return suppliedCollection;
 
     }
 
@@ -127,6 +198,30 @@ public class CollectionUtils {
     ) {
         
         return outerJoin(nullFirstComparator(Comparator.naturalOrder()), collections);
+
+    }
+
+    /**
+     * Returns a shallow copy collection containing elements that aren't common between the input collections. 
+     * The collection elements must implement (or inherit from) the {@link java.lang.Comparable} interface. 
+     * The comparison is determined using the {@link java.lang.Comparable#compareTo(Object) compareTo} method.  
+     * An empty {@link java.util.Collection} is returned if the input parameter is null or is composed of empty 
+     * collections. This implementation is null friendly, if the input collections contain an uncommon null 
+     * reference, the output collection, will contain a single null value.
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param <S>         The specific type of the collection
+     * @param supplier    The supplier of the specific collection
+     * @param collections Collection varargs to apply the outer join on 
+     * @return            The specific collection of uncommon elements
+     */
+    @SafeVarargs
+    public static <T extends Comparable<? super T>, S extends Collection<T>> S outerJoin(
+        Supplier<? extends S> supplier,
+        Collection<? extends T>... collections
+    ) {
+        
+        return outerJoin(nullFirstComparator(Comparator.naturalOrder()), supplier, collections);
 
     }
 
@@ -165,23 +260,43 @@ public class CollectionUtils {
      * @return            Collection of uncommon elements
      */
     @SafeVarargs
-    public static <T> Collection<T> outerJoin(Comparator<? super T> comparator,
-        Collection<? extends T>... collections) {
+    public static <T> Collection<T> outerJoin(Comparator<? super T> comparator, Collection<? extends T>... collections) {
         
+        return outerJoin(comparator, ArrayList::new, collections);
+
+    }
+
+    /**
+     * Returns a shallow copy collection containing elements that aren't common between the input collections. 
+     * The comparison is determined using a {@link java.util.Comparator} implementation. An empty 
+     * {@link java.util.Collection} is returned if the input parameter is null or is composed of empty collections.
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param <S>         The specific type of the collection
+     * @param comparator  The comparator implementation
+     * @param supplier    The supplier of the specific collection
+     * @param collections Collection varargs to apply the outer join on
+     * @return            The specific collection of uncommon elements
+     */
+    @SafeVarargs
+    public static <T, S extends Collection<T>> S outerJoin(
+        Comparator<? super T> comparator,
+        Supplier<? extends S> supplier,
+        Collection<? extends T>... collections
+    ) {
+        
+        if(collections == null) return null;
+
+        S suppliedCollection = supplier.get();
         Collection<T> concat = concat(collections);
         
-        if(isEmpty(concat)) return concat;
-
-        List<T> uncommon = new ArrayList<>(concat.size());
-        Predicate<T> isUnique = (element) -> 
-            !containsAny(comparator, uncommon, element) && 
-                count(comparator, element, concat) == 1;
+        if(isEmpty(concat)) return suppliedCollection;
 
         for(T element : concat)
-            if(isUnique.test(element))
-                uncommon.add(element);
+            if(count(comparator, element, concat) == 1)
+                suppliedCollection.add(element);
 
-        return uncommon;
+        return suppliedCollection;
 
     }
 
@@ -232,6 +347,33 @@ public class CollectionUtils {
 
     /**
      * Returns a shallow copy collection containing elements that are common between the input collections. 
+     * The comparison is determined first, by mapping the collection elements to {@link java.lang.Comparable} 
+     * types, and then using {@link java.lang.Comparable#compareTo(Object) compareTo} on mapped objects. An 
+     * empty {@link java.util.Collection} is returned if the input collections does not contain any elements.
+     * This implementation is null friendly, if the input collections contain a common null reference, the output 
+     * collection, will contain a single null value..
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param <S>         The specific type of the collection
+     * @param <U>         The type mapped by the identity mapper
+     * @param identity    The mapper function
+     * @param supplier    The supplier of the specific collection
+     * @param collections Collection varargs to apply the outer join on
+     * @return            The specific collection of common elements
+     */
+    @SafeVarargs
+    public static <T, U extends Comparable<? super U>, S extends Collection<T>> Collection<T> innerJoin(
+        Function<? super T, ? extends U> identity,
+        Supplier<? extends S> supplier,
+        Collection<? extends T>... collections
+    ) {
+        
+        return innerJoin(nullFirstComparator(identity), supplier, collections);
+
+    }
+
+    /**
+     * Returns a shallow copy collection containing elements that are common between the input collections. 
      * The comparison is determined using a {@link java.util.Comparator} implementation. An empty 
      * {@link java.util.Collection} is returned if the input collections does not contain any elements.
      * 
@@ -241,23 +383,50 @@ public class CollectionUtils {
      * @return            Collection of common elements
      */
     @SafeVarargs
-    public static <T> Collection<T> innerJoin(Comparator<? super T> comparator, 
-        Collection<? extends T>... collections) {
+    public static <T> Collection<T> innerJoin(Comparator<? super T> comparator, Collection<? extends T>... collections) {
+
+        return innerJoin(comparator, ArrayList::new, collections);
+
+    }
+
+    /**
+     * Returns a shallow copy collection containing elements that are common between the input collections. 
+     * The comparison is determined using a {@link java.util.Comparator} implementation. An empty 
+     * {@link java.util.Collection} is returned if the input collections does not contain any elements.
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param <S>         The specific type of the collection
+     * @param comparator  The comparator implementation
+     * @param supplier    The supplier of the specific collection
+     * @param collections Collection varargs to apply the outer join on
+     * @return            The specific collection of common elements
+     */
+    @SafeVarargs
+    public static <T,  S extends Collection<T>> S innerJoin(
+        Comparator<? super T> comparator, 
+        Supplier<? extends S> supplier,
+        Collection<? extends T>... collections
+    ) {
         
-        Collection<T> concat = concat(collections);
+        if(collections == null) return null;
+        if(collections.length == 1) return mutableCopyOf(collections[0], supplier);
 
-        if(isEmpty(concat)) return concat;
+        Set<T> common = new TreeSet<>(comparator);
+        Set<T> elements = new TreeSet<>(comparator);
+        elements.addAll(collections[0]);
 
-        List<T> common = new ArrayList<>(concat.size());
-        Predicate<T> isCommon = (element) -> 
-            !containsAny(comparator, common, element) && 
-                count(comparator, element, concat) > 1;
+        for(var current: elements) {
+            for(var j=1; j<collections.length; j++) {
 
-        for(T element : concat)
-            if(isCommon.test(element))
-                common.add(element);
+                if(!containsAny(comparator, collections[j], current))
+                    break;
 
-        return common;
+                common.add(current);
+                
+            }
+        }
+
+        return mutableCopyOf(common, supplier);
 
     }
 
@@ -290,8 +459,10 @@ public class CollectionUtils {
      * @param collection Collection to the determine the min from
      * @return           The minimum value or null if collection has no elements
      */
-    public static <T, U extends Comparable<? super U>> T minOf(Function<? super T, ? extends U> identity,
-        Collection<? extends T> collection) {
+    public static <T, U extends Comparable<? super U>> T minOf(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection
+    ) {
 
         return minOf(nullLastComparator(identity), collection);
 
@@ -345,8 +516,10 @@ public class CollectionUtils {
      * @param collection Collection to the determine the min from
      * @return           The maximum value or null if collection has no elements
      */
-    public static <T, U extends Comparable<? super U>> T maxOf(Function<? super T, ? extends U> identity,
-        Collection<? extends T> collection) {
+    public static <T, U extends Comparable<? super U>> T maxOf(
+        Function<? super T, ? extends U> identity,
+        Collection<? extends T> collection
+    ) {
 
         return maxOf(nullFirstComparator(identity), collection);
 
@@ -383,10 +556,32 @@ public class CollectionUtils {
      */
     public static <T> Collection<T> filter(Collection<? extends T> collection, Predicate<? super T> predicate) {
 
+        return filter(collection, predicate, ArrayList::new);
+
+    }
+
+    /**
+     * Returns a shallow copy of the input collection containing filtered elements that match the 
+     * input {@link java.util.function.Predicate}. An empty collection is returned if the input
+     * collection does not contain any elements.
+     * 
+     * @param <T>        The type (or super type) of collection elements
+     * @param <S>        The specific type of the collection
+     * @param collection Collection to filter elements from
+     * @param predicate  The predicate to test against the collection's elements
+     * @param supplier   The supplier of the specific collection
+     * @return           The specific collection of filtered elements
+     */
+    public static <T, S extends Collection<T>> S filter(
+        Collection<? extends T> collection, 
+        Predicate<? super T> predicate,
+        Supplier<? extends S> supplier
+    ) {
+
         return Stream.ofNullable(collection)
             .flatMap(Collection::stream)
             .filter(predicate)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toCollection(supplier::get));
 
     }
 
@@ -437,13 +632,34 @@ public class CollectionUtils {
     @SafeVarargs
     public static <T> Collection<T> merge(Collection<? extends T>... collections) {
 
+        return merge(ArrayList::new, collections);
+
+    }
+
+    /**
+     * Merges a vararg number of of collections into a single one.
+     * If the parameter is null /or the collections are empty, a null reference/ or an empty
+     * collection is returned.
+     * 
+     * @param <T>         The type (or super type) of collection elements
+     * @param <S>         The specific type of the collection
+     * @param supplier    The supplier of the specific collection
+     * @param collections Collections to merge
+     * @return            Merged collections
+     */
+    @SafeVarargs
+    public static <T, S extends Collection<T>> S merge(
+        Supplier<? extends S> supplier, 
+        Collection<? extends T>... collections
+    ) {
+
         if(collections == null)
             return null;
 
         return Stream.of(collections)
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toCollection(supplier::get));
 
     }
 
@@ -477,8 +693,10 @@ public class CollectionUtils {
      * @param collection Collection to count from
      * @return           long couting elements that are equal to object.
      */
-    public static <T, U extends Comparable<? super U>> long count(Function<? super T, ? extends U> identity, 
-        T object, Collection<? extends T> collection) {
+    public static <T, U extends Comparable<? super U>> long count(
+        Function<? super T, ? extends U> identity, 
+        T object, Collection<? extends T> collection
+    ) {
 
         return count(nullFirstComparator(identity), object, collection);
             
@@ -516,8 +734,10 @@ public class CollectionUtils {
      * @param container  Collection of elements to search
      * @return           boolean containing result of verification
      */
-    public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
-        Collection<? extends T> container) {
+    public static <T extends Comparable<? super T>> boolean containsAny(
+        Collection<? extends T> collection, 
+        Collection<? extends T> container
+    ) {
 
         return containsAny(nullFirstComparator(Comparator.naturalOrder()), collection, container);
 
@@ -536,8 +756,7 @@ public class CollectionUtils {
      * @return           boolean containing result of verification
      */
     @SafeVarargs
-    public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, 
-        T... elements) {
+    public static <T extends Comparable<? super T>> boolean containsAny(Collection<? extends T> collection, T... elements) {
 
         return containsAny(nullFirstComparator(Comparator.naturalOrder()), collection, Arrays.asList(elements));
 
@@ -554,8 +773,11 @@ public class CollectionUtils {
      * @param container  Collection of elements to search
      * @return           boolean containing result of verification
      */
-    public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
-        final Collection<? extends T> container) {
+    public static <T> boolean containsAny(
+        Comparator<? super T> comparator, 
+        Collection<? extends T> collection, 
+        final Collection<? extends T> container
+    ) {
 
         if(isEmpty(collection) || isEmpty(container))
             return false;
@@ -578,8 +800,7 @@ public class CollectionUtils {
      * @return           boolean containing result of verification
      */
     @SafeVarargs
-    public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, 
-        T... elements) {
+    public static <T> boolean containsAny(Comparator<? super T> comparator, Collection<? extends T> collection, T... elements) {
 
         return containsAny(comparator, collection, Arrays.asList(elements));
 
@@ -782,16 +1003,44 @@ public class CollectionUtils {
      * @param combiner  The combiner implementation
      * @return          Collection of merged elements
      */
-    public static <T, U, V> Collection<V> merge(Collection<? extends T> left, Collection<? extends U> right,
-        BiFunction<? super T, ? super U, ? extends V> combiner) {
+    public static <T, U, V> Collection<V> merge(
+        Collection<? extends T> left, 
+        Collection<? extends U> right,
+        BiFunction<? super T, ? super U, ? extends V> combiner
+    ) {
+
+        return merge(left, right, combiner, ArrayList::new);
+
+    }
+
+    /**
+     * Merges two collections into one collection, using a combiner to map nth element from both collection
+     * using a {@link java.util.function.BiFunction} implementation. If the collections have different sizes
+     * then the nth element from one collection is combined with a null reference using the combiner implementation.
+     * If both collections are null then a null reference is returned.
+     * 
+     * @param <T>       The type (or super type) of the first collection elements
+     * @param <U>       The type (or super type) of the second collection elements
+     * @param <V>       The type (or super type) of combiner returned type
+     * @param <S>       The specific type of the collection
+     * @param left      First collection to combine
+     * @param right     Second collection to combine
+     * @param combiner  The combiner implementation
+     * @param supplier    The supplier of the specific collection
+     * @return          Collection of merged elements
+     */
+    public static <T, U, V, S extends Collection<V>> S merge(
+        Collection<? extends T> left, 
+        Collection<? extends U> right,
+        BiFunction<? super T, ? super U, ? extends V> combiner,
+        Supplier<? extends S> supplier
+    ) {
 
         Objects.requireNonNull(combiner);
 
         if(left == null && right == null) return null;
         
-        Collection<V> collection = new ArrayList<>(
-            orDefault(ofMappable(left, Collection::size), () -> right.size()));
-
+        S collection = supplier.get();
         var iterL = ofMappable(left, Collection::iterator);
         var iterR = ofMappable(right, Collection::iterator);
         boolean hasNextL = false, hasNextR = false;
@@ -821,12 +1070,30 @@ public class CollectionUtils {
     @SafeVarargs
     public static <T> Collection<T> concat(Collection<? extends T>... collections) {
 
+        return concat(ArrayList::new, collections);
+            
+    }
+
+    /**
+     * Concatenate varargs of collections into a single collection. If varargs is null then a null
+     * reference is returned.
+     * 
+     * @param <T>         The type (or super type) of the first collection elements
+     * @param collections Collections to concatenate
+     * @return            Collection of concatenated collections
+     */
+    @SafeVarargs
+    public static <T, S extends Collection<T>> S concat(
+        Supplier<? extends S> supplier,
+        Collection<? extends T>... collections
+    ) {
+
         if(collections == null) return null;
 
         return Stream.of(collections)
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toCollection(supplier::get));
             
     }
 
@@ -948,7 +1215,25 @@ public class CollectionUtils {
      */
     public static <T> Collection<T> mutableCopyOf(Collection<? extends T> collection) {
 
-        return mapElements(collection, Function.identity());
+        return mutableCopyOf(collection, ArrayList::new);
+        
+    }
+
+    /**
+     * Returns a mutable shallow copy of the input collection. 
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <S>        The specific type of the collection
+     * @param collection Collection to copy
+     * @param supplier   The supplier of the specific collection
+     * @return           Specific mutable copy of the input collection
+     */
+    public static <T, S extends Collection<T>> S mutableCopyOf(
+        Collection<? extends T> collection,
+        Supplier<? extends S> supplier
+    ) {
+
+        return mapElements(collection, Function.identity(), supplier);
         
     }
 
@@ -963,14 +1248,39 @@ public class CollectionUtils {
      * @param mapper     The mapper function
      * @return           Collection of mapped elements
     */
-    public static <T, U> Collection<U> mapElements(Collection<? extends T> collection, 
-        Function<? super T, ? extends U> mapper) {
+    public static <T, U> Collection<U> mapElements(
+        Collection<? extends T> collection, 
+        Function<? super T, ? extends U> mapper
+    ) {
+
+        return mapElements(collection, mapper, ArrayList::new);
+            
+    }
+
+    /**
+     * Returns a shallow copy of mapped elements of input collection using a 
+     * {@link java.util.function.Function} implementation mapper. If the input
+     * collection is null then a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <U>        The type mapped by the identity mapper
+     * @param <S>        The specific type of the collection
+     * @param collection Collection to map
+     * @param mapper     The mapper function,
+     * @param supplier   The supplier of the specific collection
+     * @return           The specific collection of mapped elements
+    */
+    public static <T, U, S extends Collection<U>> S mapElements(
+        Collection<? extends T> collection, 
+        Function<? super T, ? extends U> mapper,
+        Supplier<? extends S> supplier
+    ) {
 
         if(collection == null) return null;
 
         return collection.stream()
             .map(mapper)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toCollection(supplier::get));
             
     }
 

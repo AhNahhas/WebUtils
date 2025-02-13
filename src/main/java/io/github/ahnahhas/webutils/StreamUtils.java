@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Utility methods to handle {@link java.util.stream.Stream}.
+ * @author Ahmed Amin Nahhas
+ */
 public class StreamUtils {
 
     /**

@@ -7,15 +7,18 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Utility methods to handle {@link java.lang.String} & {@link java.lang.CharSequence}.
+ * Utility methods to handle {@link java.lang.String} and {@link java.lang.CharSequence}.
  * @author Ahmed Amin Nahhas
  */
 public class StringUtils {
 
+    //padding direction
     private enum PadDirection { LEFT, RIGHT; }
 
+    //max padding size
     private static final int MAX_PAD_SIZE = 1000;
 
+    //empty string
     private static final String EMPTY_STRING = "";
 
     /**
@@ -167,9 +170,9 @@ public class StringUtils {
      * Verifies if a {@link java.lang.CharSequence} contains a specific char.
      * If str is null or empty, then false is returned.
      * 
-     * @param left  CharSequence to verify
-     * @param right CharSequence to search for
-     * @return      boolean containing the result of verification
+     * @param str      CharSequence to verify
+     * @param searched CharSequence to search for
+     * @return         boolean containing the result of verification
      */
     public static boolean contains(CharSequence str, char searched) {
 
@@ -182,9 +185,9 @@ public class StringUtils {
      * Verifies if a {@link java.lang.CharSequence} lexicographically contains a another CharSequence.
      * If at least one CharSequece is null then false is returned.
      * 
-     * @param left  CharSequence to verify
-     * @param right CharSequence to search for
-     * @return      boolean containing the result of verification
+     * @param str      CharSequence to verify
+     * @param searched CharSequence to search for
+     * @return         boolean containing the result of verification
      */
     public static boolean contains(CharSequence str, CharSequence searched) {
         return contains(str, searched, false);
@@ -194,9 +197,9 @@ public class StringUtils {
      * Verifies if a {@link java.lang.CharSequence} case-insensitively lexicographically contains a another CharSequence.
      * If at least one CharSequece is null then false is returned.
      * 
-     * @param left  CharSequence to verify
-     * @param right CharSequence to search for
-     * @return      boolean containing the result of verification
+     * @param str      CharSequence to verify
+     * @param searched CharSequence to search for
+     * @return         boolean containing the result of verification
      */
     public static boolean containsIgnoreCase(CharSequence str, CharSequence searched) {
         return contains(str, searched, true);
@@ -285,6 +288,7 @@ public class StringUtils {
      * is null or blank, and empty string ("") is used as a delimiter.
      *      
      * @param delimiter Delimeter used between joined CharSequence references
+     * @param filter    Predicate to filter with
      * @param elements  Varargs number of CharSequence references
      * @return          Joined String
      */

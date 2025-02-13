@@ -65,7 +65,7 @@ public class OptionalUtils {
     }
 
     /**
-     * Maps non null object using {@link java.util.function.Function} implementation & returns result.
+     * Maps non null object using {@link java.util.function.Function} implementation and returns result.
      * If object is null, a null reference is returned.
      * 
      * @param <T>     Type of the generic object

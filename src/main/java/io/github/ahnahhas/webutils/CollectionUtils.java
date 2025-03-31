@@ -1026,7 +1026,7 @@ public class CollectionUtils {
      * @param left      First collection to combine
      * @param right     Second collection to combine
      * @param combiner  The combiner implementation
-     * @param supplier    The supplier of the specific collection
+     * @param supplier  The supplier of the specific collection
      * @return          Collection of merged elements
      */
     public static <T, U, V, S extends Collection<V>> S merge(
@@ -1079,6 +1079,8 @@ public class CollectionUtils {
      * reference is returned.
      * 
      * @param <T>         The type (or super type) of the first collection elements
+     * @param <S>         The specific type of the collection
+     * @param supplier    The supplier of the specific collection
      * @param collections Collections to concatenate
      * @return            Collection of concatenated collections
      */

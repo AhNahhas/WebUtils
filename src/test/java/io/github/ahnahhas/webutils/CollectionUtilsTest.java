@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.junit.Test;
@@ -417,4 +418,182 @@ public class CollectionUtilsTest {
 
     }
 
+    @Test
+    public void shouldFindFirstCompliant() {
+
+        List<String> strList = TestHelpers.getListOfString("ABC", "def", "GHI", null);
+        String result = CollectionUtils.firstCompliant(strList, s -> s != null && s.startsWith("d"));
+        assertTrue(result != null);
+        assertEquals("def", result);
+
+    }
+
+    @Test
+    public void shouldNotFindFirstCompliant() {
+
+        List<String> strList = TestHelpers.getListOfString("ABC", "def", "GHI", null);
+        String result = CollectionUtils.firstCompliant(strList, s -> s != null && s.startsWith("x"));
+        assertTrue(result == null);
+
+    }
+
+    @Test
+    public void shouldFindFirstNonCompliant() {
+
+        List<String> strList = TestHelpers.getListOfString("ABC", "def", "GHI", null);
+        String result = CollectionUtils.firstNonCompliant(strList, s -> s != null && s.startsWith("d"));
+        assertTrue(result != null);
+        assertEquals("ABC", result);
+
+    }
+
+    @Test
+    public void shouldNotFindFirstNonCompliant() {
+
+        List<String> strList = TestHelpers.getListOfString("xBC", "xef", "xHI", null);
+        String result = CollectionUtils.firstNonCompliant(strList, s -> s != null && s.startsWith("x"));
+        assertTrue(result == null);
+
+    }
+
+    @Test
+    public void shouldReturnAnyElement() {
+
+        List<String> list = TestHelpers.getListOfString("ABC", "def", "GHI");
+        String result = CollectionUtils.anyElement(list);
+        assertTrue(result != null);
+        assertTrue(list.contains(result));
+
+    }
+
+    @Test
+    public void shouldReturnNullForNullCollectionAnyElement() {
+
+        String result = CollectionUtils.anyElement(null);
+        assertTrue(result == null);
+
+    }
+
+    @Test
+    public void shouldReturnFirstElementNullSafe() {
+
+        List<String> list = TestHelpers.getListOfString("ABC", "def", "GHI");
+        String result = CollectionUtils.firstElement(list);
+        assertEquals("ABC", result);
+
+    }
+
+    @Test
+    public void shouldReturnNullForNullCollectionFirstElement() {
+
+        String result = CollectionUtils.firstElement(null);
+        assertTrue(result == null);
+
+    }
+
+    @Test
+    public void shouldFindCompliantElementsByComparator() {
+
+        List<String> reference = TestHelpers.getListOfString("ABC", "XYZ", "MNO");
+        List<String> elements = TestHelpers.getListOfString("ABC", "PQR");
+        Collection<String> result = CollectionUtils.compliant(Comparator.naturalOrder(), reference, elements);
+
+        assertEquals(1, result.size());
+        assertTrue(result.contains("ABC"));
+
+    }
+
+    @Test
+    public void shouldFindCompliantElementsWithSupplier() {
+
+        List<String> reference = TestHelpers.getListOfString("ABC", "XYZ", "MNO");
+        List<String> elements = TestHelpers.getListOfString("ABC", "PQR");
+        Set<String> result = CollectionUtils.compliant(TreeSet::new, Comparator.naturalOrder(), reference, elements);
+
+        assertEquals(1, result.size());
+        assertTrue(result.contains("ABC"));
+
+    }
+
+    @Test
+    public void shouldFindCompliantElementsByComparable() {
+
+        List<Integer> reference = TestHelpers.getListOfInt(1, 2, 3, 4, 5);
+        List<Integer> elements = TestHelpers.getListOfInt(2, 4);
+        Collection<Integer> result = CollectionUtils.compliant(reference, elements);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(4));
+
+    }
+
+    @Test
+    public void shouldFindCompliantElementsWithSupplierByComparable() {
+
+        List<Integer> reference = TestHelpers.getListOfInt(1, 2, 3, 4, 5);
+        List<Integer> elements = TestHelpers.getListOfInt(2, 4);
+        Set<Integer> result = CollectionUtils.compliant(TreeSet::new, reference, elements);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(4));
+
+    }
+
+    @Test
+    public void shouldFindNonCompliantElementsByComparator() {
+
+        List<String> reference = TestHelpers.getListOfString("ABC", "XYZ", "MNO");
+        List<String> elements = TestHelpers.getListOfString("ABC", "PQR");
+        Collection<String> result = CollectionUtils.nonCompliant(Comparator.naturalOrder(), reference, elements);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains("XYZ"));
+        assertTrue(result.contains("MNO"));
+
+    }
+
+    @Test
+    public void shouldFindNonCompliantElementsWithSupplier() {
+
+        List<String> reference = TestHelpers.getListOfString("ABC", "XYZ", "MNO");
+        List<String> elements = TestHelpers.getListOfString("ABC", "PQR");
+        Set<String> result = CollectionUtils.nonCompliant(TreeSet::new, Comparator.naturalOrder(), reference, elements);
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains("XYZ"));
+        assertTrue(result.contains("MNO"));
+
+    }
+
+    @Test
+    public void shouldFindNonCompliantElementsByComparable() {
+
+        List<Integer> reference = TestHelpers.getListOfInt(1, 2, 3, 4, 5);
+        List<Integer> elements = TestHelpers.getListOfInt(2, 4);
+        Collection<Integer> result = CollectionUtils.nonCompliant(reference, elements);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(3));
+        assertTrue(result.contains(5));
+
+    }
+
+    @Test
+    public void shouldFindNonCompliantElementsWithSupplierByComparable() {
+
+        List<Integer> reference = TestHelpers.getListOfInt(1, 2, 3, 4, 5);
+        List<Integer> elements = TestHelpers.getListOfInt(2, 4);
+        Set<Integer> result = CollectionUtils.nonCompliant(TreeSet::new, reference, elements);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(3));
+        assertTrue(result.contains(5));
+
+    }
+
+    
 }

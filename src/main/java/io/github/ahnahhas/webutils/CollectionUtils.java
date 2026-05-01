@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -1299,7 +1300,9 @@ public class CollectionUtils {
         if(collection == null) return null;
 
         return collection.stream()
+            .map(Optional::ofNullable)
             .findAny()
+            .orElse(Optional.empty())
             .orElse(null);
     }
 
@@ -1316,8 +1319,231 @@ public class CollectionUtils {
         if(collection == null) return null;
 
         return collection.stream()
+            .map(Optional::ofNullable)
             .findFirst()
+            .orElse(Optional.empty())
             .orElse(null);
+    }
+
+    /**
+     * Returns first element from the collection that satisfies the predicate. 
+     * If collection is empty then a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param collection Collection to return element from
+     * @param predicate  Predicate against which the elements are tested
+     * @return           First element passing the predicate from collection or null
+     */
+    public static <T> T firstCompliant(Collection<? extends T> collection, Predicate<? super T> predicate) {
+
+        return Stream.ofNullable(collection)
+            .flatMap(Collection::stream)
+            .filter(predicate)
+            .map(Optional::ofNullable)
+            .findFirst()
+            .orElse(Optional.empty())
+            .orElse(null);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that satisfies the comparison against objects in elements collection.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <S>        The specific type of the collection
+     * @param supplier   The supplier of the specific collection
+     * @param comparator The comparator implementation to determine compliance
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that satisfies comparison
+     */
+    public static <T, S extends Collection<T>> S compliant(
+        Supplier<? extends S> supplier,
+        Comparator<? super T> comparator,
+        Collection<? extends T> reference,
+        Collection<? extends T> elements
+    ) {
+
+        return Stream.ofNullable(reference)
+            .flatMap(Collection::stream)
+            .filter(refElement -> Stream.ofNullable(elements)
+                .flatMap(Collection::stream)
+                .anyMatch(element -> comparator.compare(element, refElement) == 0)
+            )
+            .collect(Collectors.toCollection(supplier));
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that satisfies the comparison against objects in elements collection.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param comparator The comparator implementation to determine compliance
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that satisfies comparison
+     */
+    public static <T> Collection<T> compliant(
+        Comparator<? super T> comparator,
+        Collection<? extends T> reference, 
+        Collection<? extends T> elements
+    ) {
+
+        return compliant(ArrayList::new, comparator, reference, elements);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that satisfies the comparison against objects in elements collection. 
+     * Both collections types must implement (or inherit from) the {@link java.lang.Comparable} interface.
+     * The distinction is then determined using {@link java.util.Comparator#naturalOrder() naturalOrder}
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <S>        The specific type of the collection
+     * @param supplier   The supplier of the specific collection
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that satisfies comparison
+     */
+    public static <T extends Comparable<? super T>,  S extends Collection<T>> S compliant(
+        Supplier<? extends S> supplier,
+        Collection<? extends T> reference,
+        Collection<? extends T> elements
+    ) {
+
+        return compliant(supplier, Comparator.naturalOrder(), reference, elements);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that satisfies the comparison against objects in elements collection.
+     * Both collections types must implement (or inherit from) the {@link java.lang.Comparable} interface.
+     * The distinction is then determined using {@link java.util.Comparator#naturalOrder() naturalOrder}
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that satisfies comparison
+     */
+    public static <T extends Comparable<? super T>> Collection<T> compliant(
+        Collection<? extends T> reference,
+        Collection<? extends T> elements
+    ) {
+
+        return compliant(ArrayList::new, Comparator.naturalOrder(), reference, elements);
+
+    }
+
+    /**
+     * Returns first element from the collection that does not satisfy the predicate. 
+     * If collection is empty then a null reference is returned.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param collection Collection to return element from
+     * @param predicate  Predicate against which the elements are tested
+     * @return           First element negating the predicate from collection or null
+     */
+    public static <T> T firstNonCompliant(Collection<? extends T> collection, Predicate<? super T> predicate) {
+
+        var negate = Predicate.not(predicate);
+        return firstCompliant(collection, negate);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that does not satisfy the comparison against objects in elements collection.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <S>        The specific type of the collection
+     * @param supplier   The supplier of the specific collection
+     * @param comparator The comparator implementation to determine compliance
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that negate comparison
+     */
+    public static <T, S extends Collection<T>> S nonCompliant(
+        Supplier<? extends S> supplier,
+        Comparator<? super T> comparator,
+        Collection<? extends T> reference, 
+        Collection<? extends T> collection
+    ) {
+
+        return Stream.ofNullable(reference)
+            .flatMap(Collection::stream)
+            .filter(refElement -> Stream.ofNullable(collection)
+                .flatMap(Collection::stream)
+                .allMatch(element -> comparator.compare(element, refElement) != 0)
+            )
+            .collect(Collectors.toCollection(supplier));
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that does not satisfy the comparison against objects in elements collection.
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param comparator The comparator implementation to determine compliance
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that negate comparison
+     */
+    public static <T> Collection<T> nonCompliant(
+        Comparator<? super T> comparator,
+        Collection<? extends T> reference, 
+        Collection<? extends T> collection
+    ) {
+
+        return nonCompliant(ArrayList::new, comparator, reference, collection);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that does not satisfy the comparison against objects in elements collection. 
+     * Both collections types must implement (or inherit from) the {@link java.lang.Comparable} interface.
+     * The distinction is then determined using {@link java.util.Comparator#naturalOrder() naturalOrder}
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param <S>        The specific type of the collection
+     * @param supplier   The supplier of the specific collection
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that negate comparison
+     */
+    public static <T extends Comparable<? super T>,  S extends Collection<T>> S nonCompliant(
+        Supplier<? extends S> supplier,
+        Collection<? extends T> reference,
+        Collection<? extends T> elements
+    ) {
+
+        return nonCompliant(supplier, Comparator.naturalOrder(), reference, elements);
+
+    }
+
+    /**
+     * Returns a collection containing objects from reference collection,
+     * that does not satisfy the comparison against objects in elements collection.
+     * Both collections types must implement (or inherit from) the {@link java.lang.Comparable} interface.
+     * The distinction is then determined using {@link java.util.Comparator#naturalOrder() naturalOrder}
+     * 
+     * @param <T>        The type (or super type) of the collection elements
+     * @param reference  Collection to return element from
+     * @param elements   Collection to compare reference elements against
+     * @return           Collection of reference elements that negate comparison
+     */
+    public static <T extends Comparable<? super T>> Collection<T> nonCompliant(
+        Collection<? extends T> reference,
+        Collection<? extends T> elements
+    ) {
+
+        return nonCompliant(ArrayList::new, Comparator.naturalOrder(), reference, elements);
+
     }
 
 }

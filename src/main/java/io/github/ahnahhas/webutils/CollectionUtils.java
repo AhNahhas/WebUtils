@@ -1463,7 +1463,7 @@ public class CollectionUtils {
      * @param supplier   The supplier of the specific collection
      * @param comparator The comparator implementation to determine compliance
      * @param reference  Collection to return element from
-     * @param elements   Collection to compare reference elements against
+     * @param collection Collection to compare reference elements against
      * @return           Collection of reference elements that negate comparison
      */
     public static <T, S extends Collection<T>> S nonCompliant(
@@ -1490,7 +1490,7 @@ public class CollectionUtils {
      * @param <T>        The type (or super type) of the collection elements
      * @param comparator The comparator implementation to determine compliance
      * @param reference  Collection to return element from
-     * @param elements   Collection to compare reference elements against
+     * @param collection Collection to compare reference elements against
      * @return           Collection of reference elements that negate comparison
      */
     public static <T> Collection<T> nonCompliant(
@@ -1513,16 +1513,16 @@ public class CollectionUtils {
      * @param <S>        The specific type of the collection
      * @param supplier   The supplier of the specific collection
      * @param reference  Collection to return element from
-     * @param elements   Collection to compare reference elements against
+     * @param collection Collection to compare reference elements against
      * @return           Collection of reference elements that negate comparison
      */
     public static <T extends Comparable<? super T>,  S extends Collection<T>> S nonCompliant(
         Supplier<? extends S> supplier,
         Collection<? extends T> reference,
-        Collection<? extends T> elements
+        Collection<? extends T> collection
     ) {
 
-        return nonCompliant(supplier, Comparator.naturalOrder(), reference, elements);
+        return nonCompliant(supplier, Comparator.naturalOrder(), reference, collection);
 
     }
 
@@ -1534,15 +1534,15 @@ public class CollectionUtils {
      * 
      * @param <T>        The type (or super type) of the collection elements
      * @param reference  Collection to return element from
-     * @param elements   Collection to compare reference elements against
+     * @param collection Collection to compare reference elements against
      * @return           Collection of reference elements that negate comparison
      */
     public static <T extends Comparable<? super T>> Collection<T> nonCompliant(
         Collection<? extends T> reference,
-        Collection<? extends T> elements
+        Collection<? extends T> collection
     ) {
 
-        return nonCompliant(ArrayList::new, Comparator.naturalOrder(), reference, elements);
+        return nonCompliant(ArrayList::new, Comparator.naturalOrder(), reference, collection);
 
     }
 
